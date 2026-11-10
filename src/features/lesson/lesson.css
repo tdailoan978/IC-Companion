@@ -1,0 +1,227 @@
+/* Narrow first (portrait, Split View): steps are a horizontal bar on top.
+   From 821px wide the steps become a left sidebar. */
+
+.lesson {
+  min-height: 100%;
+}
+
+.step-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.step-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.step-nav-heading {
+  display: none;
+}
+
+.step-list {
+  list-style: none;
+  margin: 0;
+  display: flex;
+  gap: 6px;
+  width: max-content;
+  padding: 8px var(--gutter-right) 8px var(--gutter-left);
+}
+
+.step-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.step-link[aria-current='page'] {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.step-link:not([aria-current='page']):active {
+  background: var(--surface-2);
+}
+
+/* Done tick slot: an empty circle now, a tick once progress exists. */
+.step-tick {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.45;
+}
+
+.step-tick[data-done='true'] {
+  opacity: 1;
+  background: var(--ring-value);
+  border-color: var(--ring-value);
+}
+
+.lesson-content {
+  max-width: 820px;
+  padding: 24px var(--gutter-right) 32px var(--gutter-left);
+}
+
+@media (min-width: 821px) {
+  .lesson {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+
+  .step-nav {
+    align-self: start;
+    min-height: 100%;
+    border-bottom: 0;
+    border-right: 1px solid var(--border);
+    overflow: visible;
+    padding: 20px 12px 20px var(--gutter-left);
+  }
+
+  .step-nav-heading {
+    display: block;
+    margin: 0 0 12px 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .step-nav-heading .zh {
+    font-size: var(--zh-size);
+    color: var(--text);
+  }
+
+  .step-list {
+    flex-direction: column;
+    width: auto;
+    padding: 0;
+  }
+
+  .step-link {
+    border-radius: 12px;
+  }
+
+  .lesson-content {
+    padding: 32px 40px 40px;
+  }
+}
+
+/* ---- step content ---- */
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lesson-title h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.lesson-title-zh {
+  font-size: 2.6rem;
+  font-weight: 600;
+}
+
+.lesson-title-en {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.lesson-book {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
+.step section {
+  margin-top: 32px;
+}
+
+.objectives {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 1.05rem;
+}
+
+.objectives li + li {
+  margin-top: 10px;
+}
+
+.book-refs {
+  width: 100%;
+  max-width: 480px;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.book-refs th,
+.book-refs td {
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.book-refs thead th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.book-refs tbody th {
+  font-weight: 500;
+}
+
+.book-refs td {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.book-refs tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.coming-soon-note {
+  display: inline-block;
+  margin: 8px 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.step-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}

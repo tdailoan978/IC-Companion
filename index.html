@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>IC Companion</title>
+    <meta name="description" content="A study companion for Integrated Chinese, lessons 11 to 20." />
+
+    <!-- Home Screen app -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="IC Companion" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+
+    <!-- Theme: colours match --header-bg; src/lib/theme.ts keeps them in step -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#b71c1c" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#3b0d0d" />
+    <script>
+      // Apply a saved manual theme before first paint (no flash). The key
+      // matches THEME_CACHE_KEY in src/lib/theme.ts.
+      try {
+        var t = localStorage.getItem('ic-theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+          var c = t === 'dark' ? '#3b0d0d' : '#b71c1c';
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+            m.setAttribute('content', c);
+          });
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

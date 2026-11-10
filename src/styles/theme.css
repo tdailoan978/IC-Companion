@@ -1,0 +1,77 @@
+/* Colour tokens. Light by default; dark follows the system unless the user
+   picked a theme (data-theme on <html>, set by src/lib/theme.ts and the
+   inline script in index.html). The two dark blocks must stay identical. */
+
+:root {
+  color-scheme: light;
+  --bg: #f7f4ef;
+  --surface: #ffffff;
+  --surface-2: #efe9e0;
+  --border: #ddd4c7;
+  --text: #1f1b16;
+  --text-muted: #5c544a;
+  --pinyin: #6a6157;
+  --accent: #b71c1c;
+  --accent-text: #a31515;
+  --accent-soft: #fbe9e7;
+  --on-accent: #ffffff;
+  --ring-track: #e4dccf;
+  --ring-value: #2e7d32;
+  --header-bg: #b71c1c;
+  --header-text: #ffffff;
+  --header-control: rgb(255 255 255 / 0.16);
+  --header-control-on: #ffffff;
+  --header-control-on-text: #b71c1c;
+  --focus: #1a56db;
+  --shadow: 0 1px 2px rgb(31 27 22 / 0.08), 0 2px 8px rgb(31 27 22 / 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #141211;
+    --surface: #1e1b19;
+    --surface-2: #2a2623;
+    --border: #3b3531;
+    --text: #f1ece6;
+    --text-muted: #b8aea3;
+    --pinyin: #a99f94;
+    --accent: #ef6b5e;
+    --accent-text: #ff8f82;
+    --accent-soft: #3a1b18;
+    --on-accent: #1a0806;
+    --ring-track: #3b3531;
+    --ring-value: #7bc67e;
+    --header-bg: #3b0d0d;
+    --header-text: #ffffff;
+    --header-control: rgb(255 255 255 / 0.12);
+    --header-control-on: #f1ece6;
+    --header-control-on-text: #3b0d0d;
+    --focus: #7aa7ff;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #141211;
+  --surface: #1e1b19;
+  --surface-2: #2a2623;
+  --border: #3b3531;
+  --text: #f1ece6;
+  --text-muted: #b8aea3;
+  --pinyin: #a99f94;
+  --accent: #ef6b5e;
+  --accent-text: #ff8f82;
+  --accent-soft: #3a1b18;
+  --on-accent: #1a0806;
+  --ring-track: #3b3531;
+  --ring-value: #7bc67e;
+  --header-bg: #3b0d0d;
+  --header-text: #ffffff;
+  --header-control: rgb(255 255 255 / 0.12);
+  --header-control-on: #f1ece6;
+  --header-control-on-text: #3b0d0d;
+  --focus: #7aa7ff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}

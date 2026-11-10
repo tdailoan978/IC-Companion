@@ -1,0 +1,179 @@
+/* Base elements, typography and shared pieces (buttons, pages). */
+
+:root {
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-zh: 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
+  --zh-size: 22px; /* minimum for Chinese in lessons (PLAN.md section 6) */
+  --radius: 14px;
+  --gutter-left: max(16px, env(safe-area-inset-left));
+  --gutter-right: max(16px, env(safe-area-inset-right));
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  overflow: hidden; /* the app scrolls inside .app-main */
+}
+
+#root {
+  height: 100%;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 0.5em;
+}
+
+h1 {
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-size: 1.2rem;
+}
+
+a {
+  color: var(--accent-text);
+}
+
+/* Tap targets: no grey flash, no text selection on long press. */
+a,
+button,
+[role='button'],
+[role='radio'] {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Chinese text */
+[lang='zh-Hans'] {
+  font-family: var(--font-zh);
+}
+
+.zh-inline {
+  font-size: max(var(--zh-size), 1.15em);
+  line-height: 1;
+}
+
+.pinyin {
+  color: var(--pinyin);
+  font-weight: 300;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Pages */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px var(--gutter-right) 32px var(--gutter-left);
+}
+
+.message-page {
+  max-width: 560px;
+  text-align: center;
+  padding-top: 64px;
+}
+
+/* Buttons (links styled as buttons too) */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:active {
+  filter: brightness(0.9);
+}
+
+.button-quiet {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* Progress ring */
+.progress-ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+
+.progress-ring svg {
+  position: absolute;
+  inset: 0;
+}
+
+.progress-ring circle {
+  fill: none;
+}
+
+.progress-ring-track {
+  stroke: var(--ring-track);
+}
+
+.progress-ring-value {
+  stroke: var(--ring-value);
+  stroke-linecap: round;
+}
+
+.progress-ring-label {
+  position: relative;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

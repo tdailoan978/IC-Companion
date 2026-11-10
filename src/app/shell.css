@@ -1,0 +1,97 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-header {
+  flex: none;
+  background: var(--header-bg);
+  color: var(--header-text);
+  /* black-translucent status bar: the header runs under it */
+  padding: env(safe-area-inset-top) var(--gutter-right) 0 var(--gutter-left);
+}
+
+.app-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.app-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+.app-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px 0 4px;
+  margin-left: -4px;
+  color: var(--header-text);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-back span {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.theme-control {
+  display: flex;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--header-control);
+}
+
+.theme-option {
+  min-height: 44px;
+  min-width: 52px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--header-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-option[aria-checked='true'] {
+  background: var(--header-control-on);
+  color: var(--header-control-on-text);
+}
+
+.app-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Narrowest Split View widths: keep the header on one line. */
+@media (max-width: 360px) {
+  .app-header-row {
+    gap: 8px;
+  }
+
+  .app-title {
+    font-size: 1rem;
+  }
+
+  .theme-option {
+    min-width: 44px;
+    padding: 0 7px;
+    font-size: 0.85rem;
+  }
+}
