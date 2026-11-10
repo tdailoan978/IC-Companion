@@ -18,6 +18,8 @@ export type GrammarPoint = {
   id: string; // e.g. L11.g.3
   title: string;
   pattern: string;
+  /** Text after the pattern's backticks, e.g. "(one-syllable adjective, said twice)". */
+  patternNote?: string;
   explanationMd: string;
   examples: Sentence[];
   watchOut?: string;
