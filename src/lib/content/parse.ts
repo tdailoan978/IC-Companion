@@ -204,6 +204,9 @@ export function parseLesson(text: string, file: string): Lesson {
   if (fm.has('id') && /\s|\./.test(id)) report(fm.get('id')!.n, `front matter: id ${quote(id)} must not contain spaces or dots`);
   const level = fmNumber('level');
   const lessonNumber = fmNumber('lesson');
+  if (fm.has('id') && fm.has('lesson') && id !== `L${lessonNumber}`) {
+    report(fm.get('id')!.n, `front matter: id ${quote(id)} must be "L" followed by the lesson number; expected ${quote(`L${lessonNumber}`)}`);
+  }
 
   // ---- H1 and H2 sections -------------------------------------------------------------
 
@@ -221,6 +224,10 @@ export function parseLesson(text: string, file: string): Lesson {
   if (strayTop) report(strayTop.n, `unexpected text before the first section; only the "# Lesson …" title line belongs here`);
   if (h1.length === 0) report(h2.length > 0 ? h2[0].line.n : lastLine, 'missing the "# Lesson …" title line before the first section');
   if (h1.length > 1) report(h1[1].n, 'more than one "# " title line; expected exactly one');
+  const expectedH1 = `# Lesson ${lessonNumber} · ${fmString('title_zh')} · ${fmString('title_en')}`;
+  if (h1.length === 1 && h1[0].text.trim() !== expectedH1) {
+    report(h1[0].n, `the title line does not match the front matter; expected ${quote(expectedH1)}, found ${quote(h1[0].text)}`);
+  }
 
   const order = SECTIONS.map((s) => `"## ${s}"`).join(', ');
   const sectionsOk = attempt(() => {
@@ -437,6 +444,7 @@ export function parseLesson(text: string, file: string): Lesson {
         const [, num, title, type] = m!;
         if (Number(num) !== k + 1) fail(b.heading.n, `Exercises: sets must be numbered E1-E4 in order; expected E${k + 1}, found E${num}`);
         if (!(EXERCISE_TYPES as readonly string[]).includes(type)) fail(b.heading.n, `Exercises: unknown type ${quote(type)}; expected one of ${EXERCISE_TYPES.join(', ')}`);
+        if (type !== EXERCISE_TYPES[k]) fail(b.heading.n, `E${num}: expected {type=${EXERCISE_TYPES[k]}}; the four sets are ${EXERCISE_TYPES.join(', ')} in that order`);
         if (title.trim() === '') fail(b.heading.n, `E${num}: the heading has no title`);
         const setId = `${id}.e${num}`;
         sets.push(parseExerciseSet(b, setId, title.trim(), type as ExerciseType));

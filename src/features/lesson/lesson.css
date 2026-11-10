@@ -1,5 +1,5 @@
 /* Narrow first (portrait, Split View): steps are a horizontal bar on top.
-   From 821px wide the steps become a left sidebar. */
+   From 821px wide in landscape the steps become a left sidebar; portrait keeps the step bar (PLAN 5.2). */
 
 .lesson {
   min-height: 100%;
@@ -76,7 +76,7 @@
   padding: 24px var(--gutter-right) 32px var(--gutter-left);
 }
 
-@media (min-width: 821px) {
+@media (min-width: 821px) and (orientation: landscape) {
   .lesson {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);

@@ -291,6 +291,18 @@ describe('contract breaks', () => {
     expectError(setLine(L11, 162, '*Setting: At the end of winter, 马克 catches 林月 after class with a plan for the weekend.*', 'At the end of winter.'), 162, /expected "\*Setting: …\*"/);
   });
 
+  it('exercise sets in the wrong type order', () => {
+    expectError(setLine(L11, 206, '### E2 · Put the words in order {type=order}', '### E2 · Put the words in order {type=translate}'), 206, /E2: expected \{type=order\}/);
+  });
+
+  it('id that does not match the lesson number', () => {
+    expectError(setLine(L11, 4, 'lesson: 11', 'lesson: 14'), 2, /expected "L14"/);
+  });
+
+  it('title line that does not match the front matter', () => {
+    expectError(setLine(L11, 11, '# Lesson 11 · 天气 · Weather', '# Lesson 11 · 天气 · Weather today'), 11, /title line does not match/);
+  });
+
   it('exercise line without →', () => {
     expectError(setLine(L11, 214, '1. Look, it\'s snowing! → 你看，下雪了！', '1. Look, it\'s snowing! 你看，下雪了！'), 214, /exactly one "→".*found 0/);
   });

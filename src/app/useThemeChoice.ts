@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { loadThemeChoice, saveThemeChoice } from '../lib/storage.ts';
 import { applyTheme, isThemeChoice, type ThemeChoice } from '../lib/theme.ts';
 
@@ -11,11 +11,13 @@ function initialChoice(): ThemeChoice {
 /** The saved theme choice (IndexedDB is the source of truth) and a setter. */
 export function useThemeChoice(): [ThemeChoice, (choice: ThemeChoice) => void] {
   const [choice, setChoice] = useState<ThemeChoice>(initialChoice);
+  // A tap that lands before the saved choice has loaded wins over the late load.
+  const chosen = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     loadThemeChoice().then((saved) => {
-      if (cancelled || !isThemeChoice(saved)) return;
+      if (cancelled || chosen.current || !isThemeChoice(saved)) return;
       setChoice(saved);
       applyTheme(saved);
     });
@@ -25,6 +27,7 @@ export function useThemeChoice(): [ThemeChoice, (choice: ThemeChoice) => void] {
   }, []);
 
   const update = useCallback((next: ThemeChoice) => {
+    chosen.current = true;
     setChoice(next);
     applyTheme(next);
     void saveThemeChoice(next);

@@ -5,13 +5,12 @@ import { useThemeChoice } from './useThemeChoice.ts';
 export function ThemeControl() {
   const [choice, setChoice] = useThemeChoice();
   return (
-    <div className="theme-control" role="radiogroup" aria-label="Appearance">
+    <div className="theme-control" role="group" aria-label="Appearance">
       {THEME_CHOICES.map((option) => (
         <button
           key={option.value}
           type="button"
-          role="radio"
-          aria-checked={choice === option.value}
+          aria-pressed={choice === option.value}
           className="theme-option"
           onClick={() => setChoice(option.value)}
         >
