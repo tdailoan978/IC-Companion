@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+src/generated/
+.DS_Store
+*.log
+# Textbook material never goes in this repo (PLAN.md section 1)
+*.pdf
+*.apkg
+# The book's own word lists and topic titles: kept locally, not published
+tools/data/
+__pycache__/
