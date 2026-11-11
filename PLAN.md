@@ -186,7 +186,7 @@ repo name and its capitals do not matter). The decisions below extend sections 5
 
 ### 9.1 Study plan (daily and weekly checklists, milestones)
 
-- **Week shape (set in Settings):** which days I study (default 5 days, Mon-Fri) and a daily cap
+- **Week shape (set on the Study plan page; Settings links to it):** which days I study (default 5 days, Mon-Fri) and a daily cap
   (default 30 min). The plan never schedules more than the cap on a day.
 - **No deadline up front.** The plan starts from a start date and schedules lesson after lesson.
   After 10 study days of real timings, the app proposes a finish date for Volume 2. I accept or reject it,

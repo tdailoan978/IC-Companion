@@ -56,3 +56,42 @@ Study L11 from top to bottom:
     readable.
 
 Results:
+
+## Stop B: review, settings and study plan (milestone 5 + PLAN 9.1)
+
+Push from GitHub Desktop, wait for the green Actions run, then open the app from the Home Screen and check the
+build stamp.
+
+**Back up first:** Settings (gear, top right) → Backup → Export. Save the file to Files. This also tests check 9.
+
+1. **Set up the plan:** Home shows "Set up your study plan". Pick your days and time (Mon–Fri, 30 min),
+   then tap Start. Today lists Review first, then book reading with page numbers, then app tasks, within the
+   time you chose.
+2. **Book ticks:** tick a "Read … p. x–y" task. It asks how long it took (5/10/15/20+). Untick and tick
+   again to check it works both ways.
+3. **App tasks tick themselves:** tap a "New words" task, finish those words in the flashcards, come back. The task is
+   ticked. Do the same with one grammar point.
+4. **Home:** the Today card shows "n of m done · ~x min left" and the next task. Level 2 shows "n of 10 lessons
+   complete".
+5. **The week:** the plan page shows Mon–Sun for this week with today highlighted, plus the projected finish date.
+6. **Review queue:** finish all of L11 Part 1 flashcards today. Tomorrow, Home shows "Review due: 14" (or
+   fewer if you set a smaller cap). Do the review:
+   - tap to flip; the back shows pinyin, English, a speaker button and "Lesson 11 · 天气";
+   - swipe or tap Again / Got it;
+   - cards you missed come back once at the end.
+7. **Places are kept:** in flashcards, answer a few cards, close the app fully, reopen. The deck continues
+   where you were (e.g. "11 left"). Same for the Speaking cards.
+8. **Settings:**
+   - Chinese size Large/Extra large changes the Chinese in lessons.
+   - Pinyin off makes Grammar and Dialogues start with pinyin hidden.
+   - Speech Slow is slower.
+   - The voice list shows your Chinese voices, and Test speaks with the chosen one.
+   - Changing the theme in Settings also changes the header switch.
+9. **Backup:**
+   - Export saves a `.json` file (Share → Save to Files).
+   - "Keep my data" says whether iPadOS granted it.
+   - Import that same file: it shows what's in it, asks to confirm, then reloads with everything as it was.
+10. **Reset:** only if you're happy to start over, and only after exporting. It asks twice, then clears everything.
+11. **Rest day:** on a Saturday or Sunday, Home and the plan say it's a rest day and name the next study day.
+
+Results:
