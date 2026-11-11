@@ -12,9 +12,9 @@ import {
 const entries: BackupEntry[] = [
   ['settings.theme', 'dark'],
   ['settings.app', { zhSize: 'large', showPinyin: false }],
-  ['progress.2-L11', { steps: { overview: true } }],
+  ['progress.2-L11', { steps: { overview: '2026-11-10T09:00:00.000Z' } }],
   ['progress.2-L12', { steps: {} }],
-  ['review.cards', { a: { box: 1 }, b: { box: 2 }, c: { box: 3 } }],
+  ['review.cards', { '2/L11.v.1': { id: 'L11.v.1', lesson: '2/L11', box: 1, due: '2026-11-12', added: '2026-11-10' }, '2/L11.v.2': { id: 'L11.v.2', lesson: '2/L11', box: 2, due: '2026-11-12', added: '2026-11-10' }, '2/L11.v.3': { id: 'L11.v.3', lesson: '2/L11', box: 3, due: '2026-11-12', added: '2026-11-10' } }],
   ['activity.log', [{ day: '2026-11-10', min: 12 }]],
 ];
 
@@ -91,3 +91,26 @@ describe('rejecting files that are not backups', () => {
     expect(parseBackup(JSON.stringify({ ...valid, entries: [] })).ok).toBe(true);
   });
 });
+
+describe('value checks on import', () => {
+  const file = (entries: unknown[]) => JSON.stringify({ app: 'ic-companion', version: 1, exportedAt: '2026-11-11T10:00:00.000Z', entries });
+  it('rejects damaged settings, cards and progress without changing anything', () => {
+    expect(parseBackup(file([['settings.app', { studyDays: 'x' }]])).ok).toBe(false);
+    expect(parseBackup(file([['review.cards', { a: { id: 'L11.v.1', box: 9 } }]])).ok).toBe(false);
+    expect(parseBackup(file([['progress.2/L11', { grammarDone: 'yes' }]])).ok).toBe(false);
+    expect(parseBackup(file([['activity.log', {}]])).ok).toBe(false);
+  });
+  it('accepts well-formed values', () => {
+    const ok = parseBackup(
+      file([
+        ['settings.app', { studyDays: [1, 2, 3] }],
+        ['review.cards', { '2/L11.v.1': { id: 'L11.v.1', lesson: '2/L11', box: 2, due: '2026-11-12', added: '2026-11-10' } }],
+        ['progress.2/L11', { steps: { overview: '2026-11-10T09:00:00.000Z' }, exerciseSets: {} }],
+        ['plan.book', { t: { at: '2026-11-10T09:00:00.000Z', minutes: 10 } }],
+        ['activity.log', []],
+      ]),
+    );
+    expect(ok.ok).toBe(true);
+  });
+});
+

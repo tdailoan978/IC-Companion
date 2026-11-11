@@ -1,13 +1,13 @@
 // Gathers everything the study plan needs (settings, lesson progress, review
 // cards, book ticks, the activity log) and runs the pure planner over it.
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { allLessons } from '../../lib/content/lessons.ts';
 import { lessonKey, type Lesson } from '../../lib/content/types.ts';
 import { addDays, todayDay, type Day } from '../../lib/days.ts';
 import { useLessonProgress, type LessonProgress } from '../../lib/progress.ts';
 import { dueToday, useReviewCards } from '../../lib/review.ts';
-import { loadSettings, useSettings, type Settings } from '../../lib/settings.ts';
+import { useSettings, useSettingsLoaded, type Settings } from '../../lib/settings.ts';
 import { doneDays } from '../../lib/plan/done.ts';
 import { estimatesFrom, futureReviewMinutes, reviewMinutesOn, type Estimates } from '../../lib/plan/estimates.ts';
 import { activityDayCount, deadlineStatus, type DeadlineStatus } from '../../lib/plan/deadline.ts';
@@ -33,6 +33,8 @@ function refreshToday() {
   }
 }
 function subscribeToday(l: () => void) {
+  // The app may have sat on a lesson overnight: check the date as soon as a plan screen appears.
+  refreshToday();
   todayListeners.add(l);
   if (todayListeners.size === 1) {
     document.addEventListener('visibilitychange', refreshToday);
@@ -60,17 +62,6 @@ function useAllProgress(): { byKey: Map<string, LessonProgress>; loaded: boolean
   return { byKey, loaded };
 }
 
-function useSettingsLoaded(): boolean {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    let live = true;
-    loadSettings().then(() => live && setReady(true));
-    return () => {
-      live = false;
-    };
-  }, []);
-  return ready;
-}
 
 export type PlanModel = {
   ready: boolean;

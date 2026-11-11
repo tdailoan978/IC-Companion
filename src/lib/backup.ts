@@ -40,6 +40,40 @@ export type ParseResult = { ok: true; backup: Backup } | { ok: false; error: str
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+const isDayString = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const isTime = (v: unknown) => typeof v === 'string' && !Number.isNaN(Date.parse(v));
+const mapOf = (v: unknown, ok: (x: unknown) => boolean) => isRecord(v) && Object.values(v).every(ok);
+
+/** Checks the shape of the values the app reads, so a damaged file cannot break a screen after import. */
+function valueProblem(key: string, value: unknown): string | null {
+  if (key === 'settings.app') {
+    if (!isRecord(value)) return 'settings are not a record';
+    if ('studyDays' in value && !(Array.isArray(value.studyDays) && value.studyDays.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)))
+      return 'study days are not a list of weekdays';
+    return null;
+  }
+  if (key === REVIEW_KEY) {
+    const card = (c: unknown) =>
+      isRecord(c) && typeof c.id === 'string' && typeof c.lesson === 'string' && [1, 2, 3, 4, 5].includes(c.box as number) && isDayString(c.due) && isDayString(c.added);
+    return mapOf(value, card) ? null : 'review cards are not in the expected form';
+  }
+  if (key.startsWith(PROGRESS_PREFIX)) {
+    if (!isRecord(value)) return `progress for ${key.slice(PROGRESS_PREFIX.length)} is not a record`;
+    for (const field of ['steps', 'vocabParts', 'vocabGot', 'grammarDone', 'dialoguesDone']) {
+      if (field in value && !mapOf(value[field], isTime)) return `progress for ${key.slice(PROGRESS_PREFIX.length)} has a damaged "${field}"`;
+    }
+    for (const field of ['exerciseItems', 'exerciseSets', 'manualOff']) {
+      if (field in value && !isRecord(value[field])) return `progress for ${key.slice(PROGRESS_PREFIX.length)} has a damaged "${field}"`;
+    }
+    return null;
+  }
+  if (key === 'plan.book') {
+    return mapOf(value, (t) => isRecord(t) && isTime(t.at) && typeof t.minutes === 'number') ? null : 'book-reading ticks are not in the expected form';
+  }
+  if (key === 'activity.log') return Array.isArray(value) ? null : 'activity log is not a list';
+  return null;
+}
+
 /** Reads a backup file's text. Anything that is not a version 1 IC Companion backup is rejected. */
 export function parseBackup(text: string): ParseResult {
   let data: unknown;
@@ -72,6 +106,8 @@ export function parseBackup(text: string): ParseResult {
       return { ok: false, error: `This backup lists "${entry[0]}" twice, so it may be damaged.` };
     }
     seen.add(entry[0]);
+    const problem = valueProblem(entry[0], entry[1]);
+    if (problem) return { ok: false, error: `This backup's ${problem}, so it may be damaged. Nothing was changed.` };
   }
   return {
     ok: true,

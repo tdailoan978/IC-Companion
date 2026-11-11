@@ -26,9 +26,9 @@ export type LessonProgress = {
   dialoguesDone: Record<string, string>;
   /** Exercise item id → last answer. */
   exerciseItems: Record<string, { ok: boolean; at: string }>;
-  /** Exercise set id → score of the last full run. */
+  /** Exercise set id → score of the last full run; `at` is when the set was first finished. */
   exerciseSets: Record<string, { score: number; total: number; at: string }>;
-  /** When the speaking prompts were last finished. */
+  /** When the speaking prompts were first finished. */
   speakingDone?: string;
 };
 
@@ -171,27 +171,28 @@ export const recordVocabGot = (lesson: Lesson, vocabId: string) =>
   updateProgress(lesson, (p) => (p.vocabGot[vocabId] ? p : { ...p, vocabGot: { ...p.vocabGot, [vocabId]: now() } }));
 
 export const markVocabPartDone = (lesson: Lesson, part: 1 | 2) =>
-  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'vocab'), vocabParts: { ...p.vocabParts, [String(part)]: now() } }));
+  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'vocab'), vocabParts: { ...p.vocabParts, [String(part)]: p.vocabParts[String(part) as '1' | '2'] ?? now() } }));
 
 export const markGrammarDone = (lesson: Lesson, grammarId: string, done = true) =>
   updateProgress(lesson, (p) => {
     const grammarDone = { ...p.grammarDone };
-    if (done) grammarDone[grammarId] = now();
+    if (done) grammarDone[grammarId] = p.grammarDone[grammarId] ?? now();
     else delete grammarDone[grammarId];
     return { ...(done ? allowAuto(p, 'grammar') : p), grammarDone };
   });
 
 export const markDialogueDone = (lesson: Lesson, dialogueId: string) =>
-  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'dialogues'), dialoguesDone: { ...p.dialoguesDone, [dialogueId]: now() } }));
+  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'dialogues'), dialoguesDone: { ...p.dialoguesDone, [dialogueId]: p.dialoguesDone[dialogueId] ?? now() } }));
 
 /** Call on every answer, not only at the end of a set. */
 export const recordExerciseAnswer = (lesson: Lesson, itemId: string, ok: boolean) =>
   updateProgress(lesson, (p) => ({ ...p, exerciseItems: { ...p.exerciseItems, [itemId]: { ok, at: now() } } }));
 
 export const recordExerciseSet = (lesson: Lesson, setId: string, score: number, total: number) =>
-  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'exercises'), exerciseSets: { ...p.exerciseSets, [setId]: { score, total, at: now() } } }));
+  // `at` stays the first completion (the study plan places the task on that day); the score is the latest run's.
+  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'exercises'), exerciseSets: { ...p.exerciseSets, [setId]: { score, total, at: p.exerciseSets[setId]?.at ?? now() } } }));
 
-export const markSpeakingDone = (lesson: Lesson) => updateProgress(lesson, (p) => ({ ...allowAuto(p, 'speaking'), speakingDone: now() }));
+export const markSpeakingDone = (lesson: Lesson) => updateProgress(lesson, (p) => ({ ...allowAuto(p, 'speaking'), speakingDone: p.speakingDone ?? now() }));
 
 // ---- activity log: how long each finished unit took (the study plan in PLAN.md 9.1 learns from it) ----
 

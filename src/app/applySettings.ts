@@ -20,5 +20,5 @@ export function startSettings(): void {
   subscribeSettings(apply);
   // Get voices ready straight away, before settings load (iOS loads them late).
   void prepareSpeech();
-  void loadSettings().then(apply);
+  loadSettings().then(apply, (err) => console.warn('Could not load settings', err));
 }

@@ -98,7 +98,8 @@ export async function updateReviewCards(change: (cards: ReviewCards) => ReviewCa
     setSaveFailed(true);
     return;
   }
-  cache = change(cards);
+  // Two updates can wait on the same load; each must build on the other's result.
+  cache = change(cache ?? cards);
   notify();
   await write(KEY, cache);
 }

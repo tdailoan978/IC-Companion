@@ -95,7 +95,7 @@ export function ReviewPage() {
       });
     }
     if (isSessionDone(next)) {
-      void logActivity({ level: 0, id: 'review' }, 'review', `review.${today}`, timer.elapsed(), sessionCounts(next).reviewed);
+      void logActivity({ level: 0, id: 'review' }, 'review', `review.${new Date().toISOString()}`, timer.elapsed(), sessionCounts(next).reviewed);
     }
   }
 

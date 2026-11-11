@@ -2,7 +2,7 @@
 // on the device goes through here. Storage can be unavailable (for example a
 // private window), so reads fall back to a default and writes never throw.
 
-import { clear, createStore, entries, get, set, setMany } from 'idb-keyval';
+import { clear, createStore, entries, get, promisifyRequest, set } from 'idb-keyval';
 import type { ThemeChoice } from './theme.ts';
 
 // iOS WebKit can drop its IndexedDB connection (for example after the app sat in
@@ -88,8 +88,14 @@ export const allEntries = () => withRetry(() => entries<string, unknown>(store))
 
 /** Replaces everything saved with these entries (Import). Throws on failure. */
 export async function replaceAll(items: [string, unknown][]): Promise<void> {
-  await withRetry(() => clear(store));
-  await withRetry(() => setMany(items, store));
+  // One read-write transaction: if any write fails, the clear is rolled back too, so nothing is lost.
+  await withRetry(() =>
+    store('readwrite', (s) => {
+      s.clear();
+      for (const [key, value] of items) s.put(value, key);
+      return promisifyRequest(s.transaction);
+    }),
+  );
 }
 
 /** Deletes everything saved (Reset). Throws on failure. */

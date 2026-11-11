@@ -114,3 +114,11 @@
 .app-settings:active {
   background: var(--header-control);
 }
+
+/* Narrowest Split View: the theme switch moves out of the header (it is also in Settings),
+   so the header never pushes the page sideways. */
+@media (max-width: 360px) {
+  .app-header .theme-control {
+    display: none;
+  }
+}

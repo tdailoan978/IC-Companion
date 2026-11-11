@@ -48,7 +48,8 @@ async function changeBook(change: (b: BookTicks) => BookTicks): Promise<void> {
     setSaveFailed(true);
     return;
   }
-  book = change(current);
+  // Two changes can wait on the same load; each must build on the other's result.
+  book = change(book ?? current);
   notify();
   await write(BOOK_KEY, book);
 }
