@@ -96,3 +96,7 @@
   background: var(--accent-soft);
   color: var(--text);
 }
+
+.save-notice {
+  margin: 12px var(--gutter-right) 0 var(--gutter-left);
+}

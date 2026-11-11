@@ -14,9 +14,10 @@ export function VocabStep({ lesson }: { lesson: Lesson }) {
   const parts = [...new Set(lesson.vocab.map((v) => v.part))].sort() as Part[];
   const [part, setPart] = useState<Part>(parts[0] ?? 1);
   const [mode, setMode] = useState<Mode>('list');
-  // Flashcards mount the first time they are opened for a part (that starts the part's run and its
-  // timer), then stay mounted while I peek at the list, so the deck position is kept.
-  const [openedPart, setOpenedPart] = useState<Part | null>(null);
+  // A part's flashcards mount the first time they are opened (that starts the part's run and its
+  // timer), then stay mounted while I peek at the list or the other part, so each deck keeps its place.
+  const [openedParts, setOpenedParts] = useState<Part[]>([]);
+  const open = (p: Part) => setOpenedParts((list) => (list.includes(p) ? list : [...list, p]));
   const [reverse, setReverse] = useState(false);
   const [shuffle, setShuffle] = useState(false);
 
@@ -25,11 +26,11 @@ export function VocabStep({ lesson }: { lesson: Lesson }) {
 
   const choosePart = (next: Part) => {
     setPart(next);
-    setOpenedPart(mode === 'cards' ? next : null);
+    if (mode === 'cards') open(next);
   };
   const chooseMode = (next: Mode) => {
     setMode(next);
-    if (next === 'cards') setOpenedPart(part);
+    if (next === 'cards') open(part);
   };
 
   if (lesson.vocab.length === 0) {
@@ -78,13 +79,12 @@ export function VocabStep({ lesson }: { lesson: Lesson }) {
       </div>
 
       {mode === 'list' && <VocabList words={words} />}
-      {openedPart === part && (
-        <div hidden={mode !== 'cards'}>
+      {openedParts.map((p) => (
+        <div key={p} hidden={mode !== 'cards' || p !== part}>
           <Flashcards
-            key={part}
             lesson={lesson}
-            part={part}
-            words={words}
+            part={p}
+            words={lesson.vocab.filter((v) => v.part === p)}
             reverse={reverse}
             onReverse={setReverse}
             shuffle={shuffle}
@@ -94,7 +94,7 @@ export function VocabStep({ lesson }: { lesson: Lesson }) {
             onShowList={() => chooseMode('list')}
           />
         </div>
-      )}
+      ))}
     </article>
   );
 }

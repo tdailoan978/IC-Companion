@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { ThemeControl } from './ThemeControl.tsx';
+import { SaveNotice } from './SaveNotice.tsx';
 import './shell.css';
 
 /** App frame: header (safe-area aware) and the scrolling main area. */
@@ -29,6 +30,7 @@ export function Shell() {
         </div>
       </header>
       <main className="app-main" ref={mainRef}>
+        <SaveNotice />
         <Outlet />
       </main>
     </div>

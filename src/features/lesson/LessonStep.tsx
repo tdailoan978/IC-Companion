@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useOutletContext, useParams } from 'react-router';
 import type { Lesson } from '../../lib/content/types.ts';
 import { saveLastLocation } from '../../lib/storage.ts';
+import { stopSpeech } from '../../lib/speech.ts';
 import { NotFound } from '../../app/NotFound.tsx';
 import { isStepKey } from './steps.ts';
 import { OverviewStep } from './OverviewStep.tsx';
@@ -30,6 +31,9 @@ export function LessonStep() {
   const valid = isStepKey(step);
 
   // Remember where I was, for the Continue button on Home.
+  // Leaving a step (or the lesson) stops any sentence still being read.
+  useEffect(() => () => stopSpeech(), [lesson.id, step]);
+
   useEffect(() => {
     if (valid) void saveLastLocation({ level: lesson.level, id: lesson.id, step });
   }, [valid, lesson.level, lesson.id, step]);

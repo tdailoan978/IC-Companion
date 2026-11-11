@@ -55,7 +55,9 @@ const STALL_MS = 3000;
 let voices: SpeechSynthesisVoice[] = [];
 let chosen: SpeechSynthesisVoice | null = null;
 let rate = RATE_NORMAL;
+/** Voices that failed twice this session; the device default is used instead. */
 const silent = new Set<string>();
+const failures = new Map<string, number>();
 let status: SpeechStatus = 'loading';
 const listeners = new Set<() => void>();
 
@@ -93,13 +95,26 @@ function loadVoices(timeoutMs = 2000): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
+let savedVoiceURI: string | null | undefined;
+let listening = false;
+
 /** Call once at start-up (and again when settings change). Never call it inside a tap before speaking. */
 export async function prepareSpeech(options: { voiceURI?: string | null; rate?: number } = {}): Promise<void> {
   if (!speechSupported()) return setStatus('unsupported');
-  voices = voices.length ? voices : await loadVoices();
-  chosen = pickVoice(voices, options.voiceURI);
+  if ('voiceURI' in options) savedVoiceURI = options.voiceURI;
   if (options.rate) rate = options.rate;
+  voices = voices.length ? voices : await loadVoices();
+  chosen = pickVoice(voices, savedVoiceURI);
   setStatus(chosen ? 'ready' : 'no-voice');
+  // iOS can deliver voices (or a newly downloaded one) after the first wait: pick again whenever they change.
+  if (!listening) {
+    listening = true;
+    speechSynthesis.addEventListener('voiceschanged', () => {
+      voices = rankVoices(speechSynthesis.getVoices());
+      chosen = pickVoice(voices, savedVoiceURI);
+      setStatus(chosen ? 'ready' : 'no-voice');
+    });
+  }
 }
 
 export const mandarinVoices = () => voices;
@@ -133,17 +148,27 @@ function run(text: string, voice: SpeechSynthesisVoice | null, r: number, done: 
   u.rate = r;
   let startedAt: number | null = null;
   const stale = () => current !== u;
+  const noteFailure = () => {
+    if (!voice) return;
+    const n = (failures.get(voice.voiceURI) ?? 0) + 1;
+    failures.set(voice.voiceURI, n);
+    if (n >= 2) silent.add(voice.voiceURI);
+  };
+  // Ended instantly or errored: count it against the voice and try the device default once.
   const fail = () => {
     clearTimeout(stall);
     if (stale()) return done(false);
-    if (voice) {
-      silent.add(voice.voiceURI);
-      run(text, null, r, done);
-    } else {
-      done(false);
-    }
+    noteFailure();
+    if (voice) run(text, null, r, done);
+    else done(false);
   };
-  const stall = setTimeout(fail, STALL_MS);
+  // Never started: give up quietly. A retry from a timer is outside the tap and iOS may block it.
+  const stall = setTimeout(() => {
+    if (stale()) return done(false);
+    noteFailure();
+    current = null;
+    done(false);
+  }, STALL_MS);
   u.onstart = () => {
     if (stale()) return;
     clearTimeout(stall);

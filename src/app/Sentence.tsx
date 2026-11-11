@@ -22,13 +22,14 @@ export function Sentence({ sentence, showPinyin = true, showEnglish = true, clas
       className={`sentence ${className ?? ''}`}
       data-active={active || undefined}
       onClick={() => void speakChinese(sentence.zh)}
-      aria-label={`${sentence.zh}. ${showEnglish ? sentence.en : ''} Tap to hear.`}
     >
+      {/* No aria-label: it would replace the content and VoiceOver would read the Chinese with the English voice. */}
       {showPinyin && <span className="sentence-pinyin pinyin">{sentence.pinyin}</span>}
       <span lang="zh-Hans" className="sentence-zh">
         {sentence.zh}
       </span>
       {showEnglish && <span className="sentence-en">{sentence.en}</span>}
+      <span className="visually-hidden">Tap to hear.</span>
     </button>
   );
 }

@@ -6,7 +6,7 @@
 import { useSyncExternalStore } from 'react';
 import type { Lesson } from './content/types.ts';
 import { lessonKey } from './content/types.ts';
-import { read, write } from './storage.ts';
+import { readStrict, setSaveFailed, write } from './storage.ts';
 
 export type StepKey = 'overview' | 'vocab' | 'grammar' | 'dialogues' | 'exercises' | 'speaking';
 export const STEP_KEYS: StepKey[] = ['overview', 'vocab', 'grammar', 'dialogues', 'exercises', 'speaking'];
@@ -14,7 +14,7 @@ export const STEP_KEYS: StepKey[] = ['overview', 'vocab', 'grammar', 'dialogues'
 export type LessonProgress = {
   /** Ticked steps → when they were ticked. */
   steps: Partial<Record<StepKey, string>>;
-  /** Steps unticked by hand; auto ticks leave these alone until finished again. */
+  /** Steps unticked by hand: auto ticks leave them alone until their activity is finished again. */
   manualOff: Partial<Record<StepKey, true>>;
   /** Vocabulary parts whose flashcards were finished (milestone 5 adds these words to review). */
   vocabParts: Partial<Record<'1' | '2', string>>;
@@ -85,11 +85,18 @@ export function loadProgress(lesson: Pick<Lesson, 'level' | 'id'>): Promise<void
   if (cache.has(key)) return Promise.resolve();
   let pending = loading.get(key);
   if (!pending) {
-    pending = read<LessonProgress | null>(key, null).then((saved) => {
-      // Spread over an empty record so records saved by older builds gain any new fields.
-      cache.set(key, { ...emptyProgress(), ...saved });
-      notify();
-    });
+    pending = readStrict<LessonProgress | null>(key, null).then(
+      (saved) => {
+        // Spread over an empty record so records saved by older builds gain any new fields.
+        cache.set(key, { ...emptyProgress(), ...saved });
+        notify();
+      },
+      (err) => {
+        // Not cached, so nothing is saved over the real record; the next use tries again.
+        loading.delete(key);
+        throw err;
+      },
+    );
     loading.set(key, pending);
   }
   return pending;
@@ -97,7 +104,14 @@ export function loadProgress(lesson: Pick<Lesson, 'level' | 'id'>): Promise<void
 
 /** Applies a change, re-derives the auto ticks, saves to IndexedDB and updates every screen. */
 export async function updateProgress(lesson: Lesson, change: (p: LessonProgress) => LessonProgress): Promise<void> {
-  await loadProgress(lesson);
+  try {
+    await loadProgress(lesson);
+  } catch (err) {
+    // Without the saved record a write would replace it, so this change is not saved.
+    console.warn('Could not load progress', err);
+    setSaveFailed(true);
+    return;
+  }
   const key = storageKey(lesson);
   const next = applyAutoTicks(lesson, change(cache.get(key) ?? emptyProgress()), new Date().toISOString());
   cache.set(key, next);
@@ -109,13 +123,21 @@ export async function updateProgress(lesson: Lesson, change: (p: LessonProgress)
 export function useLessonProgress(lesson: Pick<Lesson, 'level' | 'id'>): { progress: LessonProgress; loaded: boolean } {
   const key = storageKey(lesson);
   const progress = useSyncExternalStore(subscribe, () => cache.get(key) ?? EMPTY);
-  if (!cache.has(key)) void loadProgress(lesson);
+  if (!cache.has(key)) loadProgress(lesson).catch((err) => console.warn('Could not load progress', err));
   return { progress, loaded: cache.has(key) };
 }
 
 // ---- common changes, so every screen records things the same way ----
 
 const now = () => new Date().toISOString();
+
+/** Finishing a step's activity again lifts a manual untick, so the step can tick itself again. */
+export const allowAuto = (p: LessonProgress, step: StepKey): LessonProgress => {
+  if (!p.manualOff[step]) return p;
+  const manualOff = { ...p.manualOff };
+  delete manualOff[step];
+  return { ...p, manualOff };
+};
 
 export const setStepTicked = (lesson: Lesson, step: StepKey, ticked: boolean) =>
   updateProgress(lesson, (p) => {
@@ -132,32 +154,37 @@ export const setStepTicked = (lesson: Lesson, step: StepKey, ticked: boolean) =>
   });
 
 export const markVocabPartDone = (lesson: Lesson, part: 1 | 2) =>
-  updateProgress(lesson, (p) => ({ ...p, vocabParts: { ...p.vocabParts, [String(part)]: now() } }));
+  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'vocab'), vocabParts: { ...p.vocabParts, [String(part)]: now() } }));
 
 export const markGrammarDone = (lesson: Lesson, grammarId: string, done = true) =>
   updateProgress(lesson, (p) => {
     const grammarDone = { ...p.grammarDone };
     if (done) grammarDone[grammarId] = now();
     else delete grammarDone[grammarId];
-    return { ...p, grammarDone };
+    return { ...(done ? allowAuto(p, 'grammar') : p), grammarDone };
   });
 
 export const markDialogueDone = (lesson: Lesson, dialogueId: string) =>
-  updateProgress(lesson, (p) => ({ ...p, dialoguesDone: { ...p.dialoguesDone, [dialogueId]: now() } }));
+  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'dialogues'), dialoguesDone: { ...p.dialoguesDone, [dialogueId]: now() } }));
 
 /** Call on every answer, not only at the end of a set. */
 export const recordExerciseAnswer = (lesson: Lesson, itemId: string, ok: boolean) =>
   updateProgress(lesson, (p) => ({ ...p, exerciseItems: { ...p.exerciseItems, [itemId]: { ok, at: now() } } }));
 
 export const recordExerciseSet = (lesson: Lesson, setId: string, score: number, total: number) =>
-  updateProgress(lesson, (p) => ({ ...p, exerciseSets: { ...p.exerciseSets, [setId]: { score, total, at: now() } } }));
+  updateProgress(lesson, (p) => ({ ...allowAuto(p, 'exercises'), exerciseSets: { ...p.exerciseSets, [setId]: { score, total, at: now() } } }));
 
-export const markSpeakingDone = (lesson: Lesson) => updateProgress(lesson, (p) => ({ ...p, speakingDone: now() }));
+export const markSpeakingDone = (lesson: Lesson) => updateProgress(lesson, (p) => ({ ...allowAuto(p, 'speaking'), speakingDone: now() }));
 
 // ---- activity log: how long each finished unit took (the study plan in PLAN.md 9.1 learns from it) ----
 
 export type ActivityKind = 'vocab-part' | 'grammar' | 'dialogue' | 'exercise-set' | 'speaking' | 'book';
-export type Activity = { at: string; lesson: string; kind: ActivityKind; ref: string; ms: number; count?: number };
+/**
+ * `repeat`: the same unit was logged before (a re-read, "go again", a toggle off and on). The study
+ * plan's time estimates should use first runs only, and ignore entries under a few seconds (for
+ * example several grammar points marked in a row).
+ */
+export type Activity = { at: string; lesson: string; kind: ActivityKind; ref: string; ms: number; count?: number; repeat?: true };
 
 const ACTIVITY_KEY = 'activity.log';
 let activityQueue = Promise.resolve();
@@ -170,12 +197,16 @@ let activityQueue = Promise.resolve();
 export function logActivity(lesson: Pick<Lesson, 'level' | 'id'>, kind: ActivityKind, ref: string, ms: number, count?: number): Promise<void> {
   const entry: Activity = { at: now(), lesson: lessonKey(lesson), kind, ref, ms: Math.min(Math.max(0, Math.round(ms)), 30 * 60_000) };
   if (count !== undefined) entry.count = count;
-  activityQueue = activityQueue.then(async () => {
-    const log = await read<Activity[]>(ACTIVITY_KEY, []);
-    log.push(entry);
-    await write(ACTIVITY_KEY, log);
-  });
+  activityQueue = activityQueue
+    .then(async () => {
+      // A failed read throws here, so the log is never replaced by a one-entry list.
+      const log = await readStrict<Activity[]>(ACTIVITY_KEY, []);
+      if (log.some((a) => a.lesson === entry.lesson && a.kind === entry.kind && a.ref === entry.ref)) entry.repeat = true;
+      log.push(entry);
+      await write(ACTIVITY_KEY, log);
+    })
+    .catch((err) => console.warn('Could not log activity', err));
   return activityQueue;
 }
 
-export const loadActivityLog = () => read<Activity[]>(ACTIVITY_KEY, []);
+export const loadActivityLog = () => readStrict<Activity[]>(ACTIVITY_KEY, []);

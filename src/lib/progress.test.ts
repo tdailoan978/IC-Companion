@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseLesson } from './content/parse.ts';
-import { applyAutoTicks, completion, emptyProgress, finishedSteps, type LessonProgress } from './progress.ts';
+import { allowAuto, applyAutoTicks, completion, emptyProgress, finishedSteps, type LessonProgress } from './progress.ts';
 
 const L11 = parseLesson(readFileSync(new URL('../../content/level-2/L11.md', import.meta.url), 'utf8'), 'L11.md');
 const T = '2026-11-11T10:00:00.000Z';
@@ -41,5 +41,11 @@ describe('lesson progress', () => {
     const first = applyAutoTicks(L11, allDone(), T);
     const again = applyAutoTicks(L11, first, '2026-12-01T00:00:00.000Z');
     expect(again.steps.vocab).toBe(T);
+  });
+
+  it('ticks a hand-unticked step again once its activity is finished again', () => {
+    const unticked = { ...allDone(), manualOff: { grammar: true as const } };
+    expect(applyAutoTicks(L11, unticked, T).steps.grammar).toBeUndefined();
+    expect(applyAutoTicks(L11, allowAuto(unticked, 'grammar'), T).steps.grammar).toBe(T);
   });
 });
