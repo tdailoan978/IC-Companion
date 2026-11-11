@@ -10,3 +10,4 @@ src/generated/
 # The book's own word lists and topic titles: kept locally, not published
 tools/data/
 __pycache__/
+.Rhistory
