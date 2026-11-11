@@ -1,0 +1,98 @@
+/* Shared study components: speak button, sentence, toggles, step tick, notices. */
+
+.speak-button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  cursor: pointer;
+}
+
+.speak-button[data-playing='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.sentence {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sentence:active,
+.sentence[data-active] {
+  background: var(--accent-soft);
+}
+
+.sentence-zh {
+  font-size: var(--zh-size);
+  line-height: 1.45;
+}
+
+.sentence-pinyin {
+  font-size: 1rem;
+}
+
+.sentence-en {
+  color: var(--text-muted);
+}
+
+.toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.toggle-chip {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.toggle-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.step-done {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.step-done-mark {
+  font-weight: 700;
+}
+
+.step-done-hint {
+  margin: 0;
+}
+
+.notice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--text);
+}

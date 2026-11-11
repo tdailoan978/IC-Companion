@@ -380,6 +380,7 @@ export function parseLesson(text: string, file: string): Lesson {
           id: `${id}.g.${g}`,
           title: m![2].trim(),
           pattern: pattern!,
+          patternParts: extractPatternParts(pm![1]),
           explanationMd,
           examples: t.rows.map(toSentence),
         };
@@ -577,6 +578,18 @@ export function extractPattern(rest: string): string | undefined {
   if ((span.match(/`/g) ?? []).length % 2 !== 0) return undefined;
   const pattern = span.replace(/`/g, '').trim();
   return pattern === '' ? undefined : pattern;
+}
+
+/** The span from the first to the last backtick, as backticked parts and the plain words joining them. */
+export function extractPatternParts(rest: string): { text: string; code: boolean }[] {
+  const first = rest.indexOf('`');
+  const last = rest.lastIndexOf('`');
+  if (first < 0 || last <= first) return [];
+  return rest
+    .slice(first, last + 1)
+    .split('`')
+    .map((text, i) => ({ text: text.trim(), code: i % 2 === 1 }))
+    .filter((part) => part.text !== '');
 }
 
 /** Text after the last backtick of the Pattern line, e.g. "(the situation is new or has changed)". */

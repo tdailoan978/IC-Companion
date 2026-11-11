@@ -18,6 +18,8 @@ export type GrammarPoint = {
   id: string; // e.g. L11.g.3
   title: string;
   pattern: string;
+  /** The pattern line split into its backticked parts (code: true) and the joining words between them. */
+  patternParts: { text: string; code: boolean }[];
   /** Text after the pattern's backticks, e.g. "(one-syllable adjective, said twice)". */
   patternNote?: string;
   explanationMd: string;

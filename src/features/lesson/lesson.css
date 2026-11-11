@@ -207,15 +207,6 @@
   border-bottom: 0;
 }
 
-.coming-soon-note {
-  display: inline-block;
-  margin: 8px 0;
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  font-weight: 600;
-}
 
 .step-pager {
   display: flex;

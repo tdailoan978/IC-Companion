@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { ContentError, extractPattern, extractPatternNote, normalizeForCompare, parseLesson } from './parse.ts';
+import { ContentError, extractPattern, extractPatternNote, extractPatternParts, normalizeForCompare, parseLesson } from './parse.ts';
 import type { Lesson } from './types.ts';
 
 const levelDir = fileURLToPath(new URL('../../../content/level-2/', import.meta.url));
@@ -395,5 +395,18 @@ describe('extractPatternNote', () => {
   it('is kept on the parsed L11 grammar point', () => {
     const l11 = parseLesson(readFileSync(new URL('../../../content/level-2/L11.md', import.meta.url), 'utf8'), 'L11.md');
     expect(l11.grammar.some((g) => g.patternNote === '(the situation is new or has changed)')).toBe(true);
+  });
+});
+
+describe('extractPatternParts', () => {
+  it('separates the backticked parts from the joining words', () => {
+    expect(extractPatternParts('`A + 刚 + V` compared with `刚才 + V` (note)')).toEqual([
+      { text: 'A + 刚 + V', code: true },
+      { text: 'compared with', code: false },
+      { text: '刚才 + V', code: true },
+    ]);
+  });
+  it('gives one part for a single pattern', () => {
+    expect(extractPatternParts('`A + 比 + B + Adj`')).toEqual([{ text: 'A + 比 + B + Adj', code: true }]);
   });
 });

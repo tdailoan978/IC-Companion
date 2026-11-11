@@ -12,7 +12,7 @@ const KEYS = {
   lastLocation: 'nav.lastLocation',
 } as const;
 
-async function read<T>(key: string, fallback: T): Promise<T> {
+export async function read<T>(key: string, fallback: T): Promise<T> {
   try {
     const value = await get<T>(key, store);
     return value ?? fallback;
@@ -21,7 +21,7 @@ async function read<T>(key: string, fallback: T): Promise<T> {
   }
 }
 
-async function write<T>(key: string, value: T): Promise<void> {
+export async function write<T>(key: string, value: T): Promise<void> {
   try {
     await set(key, value, store);
   } catch (err) {

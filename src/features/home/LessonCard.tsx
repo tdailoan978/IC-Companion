@@ -2,10 +2,10 @@ import { Link } from 'react-router';
 import type { Lesson } from '../../lib/content/types.ts';
 import { ProgressRing } from '../../app/ProgressRing.tsx';
 import { lessonPath } from '../lesson/steps.ts';
+import { completion, useLessonProgress } from '../../lib/progress.ts';
 
 export function LessonCard({ lesson }: { lesson: Lesson }) {
-  // Lesson progress arrives in milestone 4.
-  const progress = 0;
+  const progress = completion(useLessonProgress(lesson).progress);
   return (
     <Link to={lessonPath(lesson.level, lesson.id)} className="lesson-card">
       <ProgressRing value={progress}>
