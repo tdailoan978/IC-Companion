@@ -1,0 +1,522 @@
+/* Study plan (PLAN.md 9.1): the plan page and the Today card on Home. */
+
+@media (min-width: 900px) {
+  .plan-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      'today week'
+      'finish week'
+      'milestones week'
+      'settings week';
+    gap: 0 32px;
+    align-items: start;
+  }
+
+  .plan-area-today {
+    grid-area: today;
+  }
+
+  .plan-area-week {
+    grid-area: week;
+  }
+
+  .plan-area-finish {
+    grid-area: finish;
+  }
+
+  .plan-area-milestones {
+    grid-area: milestones;
+  }
+
+  .plan-area-settings {
+    grid-area: settings;
+  }
+}
+
+.plan-grid > * {
+  min-width: 0;
+}
+
+.plan-section {
+  margin: 0 0 28px;
+}
+
+.plan-heading-date {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.plan-subhead {
+  margin-top: 20px;
+  font-size: 1rem;
+}
+
+.plan-summary {
+  margin: 0 0 12px;
+}
+
+/* Checklist */
+.plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.plan-list-next {
+  margin-top: 12px;
+}
+
+.plan-item + .plan-item {
+  border-top: 1px solid var(--border);
+}
+
+.plan-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 6px 12px 6px 6px;
+}
+
+.plan-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+}
+
+.plan-mark svg {
+  box-sizing: content-box;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  padding: 1px;
+}
+
+.plan-mark[data-done='true'] svg {
+  border-color: var(--ring-value);
+  background: var(--ring-value);
+  color: var(--surface);
+}
+
+.plan-tick {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.plan-tick[aria-pressed='false'] .plan-mark svg {
+  border-color: var(--accent-text);
+  border-style: dashed;
+}
+
+.plan-tick:active {
+  background: var(--accent-soft);
+}
+
+.plan-item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.plan-item-label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.plan-item-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+.plan-item-link:active {
+  text-decoration: underline;
+}
+
+.plan-item[data-done='true'] .plan-item-label {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.plan-item-meta {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.plan-item-meta [lang='zh-Hans'] {
+  font-size: 1rem;
+}
+
+.plan-item .zh-inline,
+.plan-day .zh-inline,
+.plan-next-week .zh-inline,
+.today-card .zh-inline {
+  font-size: 1.15em;
+}
+
+.plan-minutes {
+  padding: 0 12px 12px 58px;
+}
+
+.plan-minutes-q {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.plan-minutes-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.plan-minutes-choice {
+  min-width: 72px;
+}
+
+.plan-done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 14px;
+}
+
+.plan-done .plan-list-next {
+  flex-basis: 100%;
+}
+
+.plan-done-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ring-value);
+}
+
+/* Finish */
+.plan-finish-date {
+  margin: 0 0 12px;
+}
+
+.plan-callout {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+
+.plan-callout p {
+  margin: 0 0 10px;
+}
+
+.plan-callout-warn {
+  border-left: 4px solid var(--accent);
+}
+
+.plan-callout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.plan-estimates {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.plan-estimates th,
+.plan-estimates td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.plan-estimates thead th {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.plan-estimates tbody th {
+  font-weight: 400;
+}
+
+.plan-estimates td:nth-child(2) {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.plan-estimates tr[data-measured='true'] td:last-child {
+  color: var(--ring-value);
+  font-weight: 600;
+}
+
+.plan-estimates tr[data-measured='false'] td:last-child {
+  color: var(--text-muted);
+}
+
+/* Milestones */
+.plan-volume {
+  margin: 0 0 8px;
+}
+
+.plan-volume-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--ring-track);
+  overflow: hidden;
+}
+
+.plan-volume-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ring-value);
+}
+
+.plan-milestones {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.plan-milestone {
+  color: var(--ring-value);
+  font-weight: 600;
+}
+
+.plan-milestone [lang='zh-Hans'] {
+  font-size: 1.1em;
+}
+
+/* Week */
+.plan-week {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.plan-day {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.plan-day[data-when='today'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.plan-day[data-when='past'] {
+  background: var(--surface-2);
+}
+
+.plan-day-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.plan-day-tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.plan-day-mins {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-day-items {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 0.95rem;
+}
+
+.plan-day-items li {
+  display: flex;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+.plan-day-items li[data-done='true'] {
+  color: var(--text-muted);
+}
+
+.plan-day-tick {
+  flex: none;
+  width: 1.1em;
+  color: var(--ring-value);
+  font-weight: 700;
+}
+
+.plan-day-items li[data-done='false'] .plan-day-tick {
+  color: var(--text-muted);
+}
+
+.plan-next-week {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.plan-next-week li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  padding: 8px 14px;
+}
+
+.plan-next-week li + li {
+  border-top: 1px solid var(--border);
+}
+
+.plan-next-week li[data-study='false'] {
+  color: var(--text-muted);
+}
+
+.plan-next-day {
+  min-width: 6.5em;
+  font-weight: 600;
+}
+
+.plan-next-what {
+  color: var(--text-muted);
+}
+
+/* Settings and setup */
+.plan-field {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.plan-field legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.plan-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.plan-chip {
+  min-width: 56px;
+}
+
+.plan-field-note {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.plan-date-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.plan-date {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.plan-setup {
+  max-width: 640px;
+}
+
+.plan-start {
+  margin-top: 4px;
+}
+
+/* Home: Today card */
+.today-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.today-card-line {
+  margin: 0;
+}
+
+.today-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button.today-card-next {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  max-width: 100%;
+  text-align: left;
+}
+
+.today-card-kicker {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
