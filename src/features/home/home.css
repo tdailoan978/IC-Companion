@@ -90,3 +90,22 @@
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
 }
+
+.level-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.level-count {
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-muted);
+}
+
+.level-count[data-complete] {
+  color: var(--ring-value);
+}

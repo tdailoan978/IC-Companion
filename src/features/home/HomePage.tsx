@@ -2,6 +2,7 @@ import { lessonsByLevel } from '../../lib/content/lessons.ts';
 import { BuildStamp } from '../../app/BuildStamp.tsx';
 import { ContinueButton } from './ContinueButton.tsx';
 import { LessonCard } from './LessonCard.tsx';
+import { LevelHeading } from './LevelHeading.tsx';
 import { ReviewDueButton } from '../review/ReviewDueButton.tsx';
 import { TodayCard } from '../plan/TodayCard.tsx';
 import './home.css';
@@ -17,7 +18,7 @@ export function HomePage() {
 
       {lessonsByLevel.map(({ level, lessons }) => (
         <section key={level} className="level" aria-labelledby={`level-${level}`}>
-          <h2 id={`level-${level}`}>Level {level}</h2>
+          <LevelHeading level={level} lessons={lessons} />
           <ul className="lesson-grid">
             {lessons.map((lesson) => (
               <li key={lesson.id}>
