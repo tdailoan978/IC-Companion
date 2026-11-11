@@ -141,6 +141,12 @@ button {
   filter: brightness(0.9);
 }
 
+.button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: none;
+}
+
 .button-quiet {
   background: var(--surface-2);
   color: var(--text);
