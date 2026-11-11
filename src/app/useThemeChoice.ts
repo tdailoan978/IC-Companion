@@ -1,37 +1,50 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { loadThemeChoice, saveThemeChoice } from '../lib/storage.ts';
 import { applyTheme, isThemeChoice, type ThemeChoice } from '../lib/theme.ts';
 
-/** What index.html's inline script already applied, so the control is right on first render. */
+// One shared theme choice for every control (the header switch and Settings),
+// so changing it in one place updates the other.
+
+/** What index.html's inline script already applied, so controls are right on first render. */
 function initialChoice(): ThemeChoice {
   const attr = document.documentElement.dataset.theme;
   return isThemeChoice(attr) ? attr : 'system';
 }
 
-/** The saved theme choice (IndexedDB is the source of truth) and a setter. */
-export function useThemeChoice(): [ThemeChoice, (choice: ThemeChoice) => void] {
-  const [choice, setChoice] = useState<ThemeChoice>(initialChoice);
-  // A tap that lands before the saved choice has loaded wins over the late load.
-  const chosen = useRef(false);
+let current: ThemeChoice | null = null;
+// A tap that lands before the saved choice has loaded wins over the late load.
+let chosen = false;
+let loadStarted = false;
+const listeners = new Set<() => void>();
+const notify = () => listeners.forEach((l) => l());
 
-  useEffect(() => {
-    let cancelled = false;
-    loadThemeChoice().then((saved) => {
-      if (cancelled || chosen.current || !isThemeChoice(saved)) return;
-      setChoice(saved);
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  if (!loadStarted) {
+    loadStarted = true;
+    void loadThemeChoice().then((saved) => {
+      if (chosen || !isThemeChoice(saved)) return;
+      current = saved;
       applyTheme(saved);
+      notify();
     });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
-  const update = useCallback((next: ThemeChoice) => {
-    chosen.current = true;
-    setChoice(next);
-    applyTheme(next);
-    void saveThemeChoice(next);
-  }, []);
+const getChoice = () => (current ??= initialChoice());
 
-  return [choice, update];
+export function setThemeChoice(next: ThemeChoice): void {
+  chosen = true;
+  current = next;
+  applyTheme(next);
+  notify();
+  void saveThemeChoice(next);
+}
+
+/** The saved theme choice (IndexedDB is the source of truth) and a setter shared by every control. */
+export function useThemeChoice(): [ThemeChoice, (choice: ThemeChoice) => void] {
+  return [useSyncExternalStore(subscribe, getChoice), setThemeChoice];
 }

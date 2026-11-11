@@ -1,0 +1,359 @@
+/* Settings screen: grouped cards of settings, each control at least 44px tall. */
+
+.settings-page {
+  max-width: 760px;
+}
+
+.settings-section {
+  margin-top: 28px;
+}
+
+.settings-section > h2 {
+  margin: 0 0 8px 4px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.settings-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.settings-card > * + * {
+  border-top: 1px solid var(--border);
+}
+
+/* One setting: text on the left, control on the right; wraps under on narrow widths. */
+.setting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 16px;
+  border: 0;
+}
+
+.setting-stack {
+  display: grid;
+  justify-content: stretch;
+}
+
+.setting-text {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.setting-label {
+  font-weight: 600;
+}
+
+label.setting-label {
+  cursor: pointer;
+}
+
+.setting-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.settings-pad {
+  margin: 0;
+  padding: 14px 16px;
+}
+
+.settings-intro {
+  color: var(--text-muted);
+}
+
+.settings-notice {
+  margin: 0;
+  border-radius: 0;
+}
+
+.settings-notice p,
+.settings-notice ol {
+  margin: 0;
+}
+
+.settings-notice ol {
+  margin-top: 6px;
+  padding-left: 1.4em;
+}
+
+/* Segmented choice */
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.segmented-option {
+  flex: 1 0 auto;
+  min-height: 44px;
+  min-width: 64px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmented-option[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Narrow Split View: keep the three size choices on one line. */
+@media (max-width: 400px) {
+  .segmented-option {
+    min-width: 52px;
+    padding: 0 9px;
+    font-size: 0.92rem;
+  }
+}
+
+/* On / off switch */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.switch-thumb {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--ring-track);
+  box-shadow: inset 0 0 0 1px var(--border);
+  transition: background 0.15s;
+}
+
+.switch-thumb::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s;
+}
+
+.switch[aria-checked='true'] .switch-thumb {
+  background: var(--ring-value);
+}
+
+.switch[aria-checked='true'] .switch-thumb::after {
+  transform: translateX(20px);
+}
+
+.switch-state {
+  min-width: 2em;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+/* Number stepper */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.stepper-button {
+  width: 48px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stepper-button:disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.stepper-value {
+  min-width: 3ch;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* Chinese sample */
+.size-sample {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 14px 16px 16px;
+  background: var(--surface-2);
+}
+
+.sample-zh {
+  line-height: 1.45;
+}
+
+.size-sample figcaption {
+  font-size: 0.9rem;
+}
+
+/* Voice list */
+.voice-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.voice-picker legend {
+  float: left; /* keeps the legend inside the grid on WebKit */
+  width: 100%;
+  padding: 0;
+}
+
+.voice-options {
+  display: grid;
+  gap: 4px;
+}
+
+.voice-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.voice-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.voice-option input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.voice-text {
+  display: grid;
+  min-width: 0;
+}
+
+.voice-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.voice-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Backup, import and reset */
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.file-button {
+  position: relative;
+}
+
+.file-button:focus-within {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.settings-message {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.settings-error {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.settings-confirm {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.settings-confirm p {
+  margin: 0;
+}
+
+.settings-confirm-title {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.settings-facts {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.settings-danger {
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.button-danger {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.settings-footer {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.settings-footer .build-stamp {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
