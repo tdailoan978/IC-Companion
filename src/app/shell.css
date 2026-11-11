@@ -95,3 +95,22 @@
     font-size: 0.85rem;
   }
 }
+
+.app-header-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-settings {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--header-text);
+}
+
+.app-settings:active {
+  background: var(--header-control);
+}

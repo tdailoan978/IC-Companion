@@ -2,7 +2,7 @@
 // on the device goes through here. Storage can be unavailable (for example a
 // private window), so reads fall back to a default and writes never throw.
 
-import { createStore, get, set } from 'idb-keyval';
+import { clear, createStore, entries, get, set, setMany } from 'idb-keyval';
 import type { ThemeChoice } from './theme.ts';
 
 // iOS WebKit can drop its IndexedDB connection (for example after the app sat in
@@ -80,3 +80,17 @@ export type LastLocation = { level: number; id: string; step: string };
 
 export const loadLastLocation = () => read<LastLocation | null>(KEYS.lastLocation, null);
 export const saveLastLocation = (loc: LastLocation) => write(KEYS.lastLocation, loc);
+
+// ---- whole-store access, for Export / Import / Reset in Settings ----
+
+/** Every saved key and value. Throws if storage cannot be read. */
+export const allEntries = () => withRetry(() => entries<string, unknown>(store));
+
+/** Replaces everything saved with these entries (Import). Throws on failure. */
+export async function replaceAll(items: [string, unknown][]): Promise<void> {
+  await withRetry(() => clear(store));
+  await withRetry(() => setMany(items, store));
+}
+
+/** Deletes everything saved (Reset). Throws on failure. */
+export const clearAll = () => withRetry(() => clear(store));

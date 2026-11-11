@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getSettings } from '../../lib/settings.ts';
 import type { GrammarPoint, Lesson } from '../../lib/content/types.ts';
 import { logActivity, markGrammarDone, useLessonProgress } from '../../lib/progress.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
@@ -11,7 +12,7 @@ import './grammar.css';
 /** PLAN.md 5.2 step 3: one card per grammar point, each marked "Got it" when understood. */
 export function GrammarStep({ lesson }: { lesson: Lesson }) {
   const { progress } = useLessonProgress(lesson);
-  const [showPinyin, setShowPinyin] = useState(true);
+  const [showPinyin, setShowPinyin] = useState(getSettings().showPinyin);
   const [showEnglish, setShowEnglish] = useState(true);
   // Active time since the screen opened or since the previous "Got it" (PLAN.md 9.1).
   const timer = useActiveTimer();

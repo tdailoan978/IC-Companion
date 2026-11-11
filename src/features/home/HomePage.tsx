@@ -2,13 +2,16 @@ import { lessonsByLevel } from '../../lib/content/lessons.ts';
 import { BuildStamp } from '../../app/BuildStamp.tsx';
 import { ContinueButton } from './ContinueButton.tsx';
 import { LessonCard } from './LessonCard.tsx';
+import { ReviewDueButton } from '../review/ReviewDueButton.tsx';
+import { TodayCard } from '../plan/TodayCard.tsx';
 import './home.css';
 
 export function HomePage() {
   return (
     <div className="page home">
+      <TodayCard />
       <div className="home-actions">
-        {/* Milestone 5: the "Review due: N" button goes here. */}
+        <ReviewDueButton />
         <ContinueButton />
       </div>
 

@@ -16,8 +16,10 @@ export type LessonProgress = {
   steps: Partial<Record<StepKey, string>>;
   /** Steps unticked by hand: auto ticks leave them alone until their activity is finished again. */
   manualOff: Partial<Record<StepKey, true>>;
-  /** Vocabulary parts whose flashcards were finished (milestone 5 adds these words to review). */
+  /** Vocabulary parts whose flashcards were finished (their words join the review queue). */
   vocabParts: Partial<Record<'1' | '2', string>>;
+  /** Vocab item id → when it was first marked "Got it" in the flashcards (the study plan's word slices). */
+  vocabGot: Record<string, string>;
   /** Grammar point id → when it was marked understood. */
   grammarDone: Record<string, string>;
   /** Dialogue id → when it was read to the end. */
@@ -34,6 +36,7 @@ export const emptyProgress = (): LessonProgress => ({
   steps: {},
   manualOff: {},
   vocabParts: {},
+  vocabGot: {},
   grammarDone: {},
   dialoguesDone: {},
   exerciseItems: {},
@@ -119,6 +122,16 @@ export async function updateProgress(lesson: Lesson, change: (p: LessonProgress)
   await write(key, next);
 }
 
+/** The cached progress of a lesson, or undefined if not loaded yet (see loadProgress). */
+export const getProgress = (lesson: Pick<Lesson, 'level' | 'id'>): LessonProgress | undefined => cache.get(storageKey(lesson));
+
+/** Forgets every cached lesson (after Import or Reset) so screens read storage again. */
+export function resetProgressCache(): void {
+  cache.clear();
+  loading.clear();
+  notify();
+}
+
 /** Current progress of one lesson (empty until loaded) and whether it has loaded. */
 export function useLessonProgress(lesson: Pick<Lesson, 'level' | 'id'>): { progress: LessonProgress; loaded: boolean } {
   const key = storageKey(lesson);
@@ -153,6 +166,10 @@ export const setStepTicked = (lesson: Lesson, step: StepKey, ticked: boolean) =>
     return { ...p, steps, manualOff };
   });
 
+/** Call on every flashcard "Got it"; keeps the first time. */
+export const recordVocabGot = (lesson: Lesson, vocabId: string) =>
+  updateProgress(lesson, (p) => (p.vocabGot[vocabId] ? p : { ...p, vocabGot: { ...p.vocabGot, [vocabId]: now() } }));
+
 export const markVocabPartDone = (lesson: Lesson, part: 1 | 2) =>
   updateProgress(lesson, (p) => ({ ...allowAuto(p, 'vocab'), vocabParts: { ...p.vocabParts, [String(part)]: now() } }));
 
@@ -178,7 +195,7 @@ export const markSpeakingDone = (lesson: Lesson) => updateProgress(lesson, (p) =
 
 // ---- activity log: how long each finished unit took (the study plan in PLAN.md 9.1 learns from it) ----
 
-export type ActivityKind = 'vocab-part' | 'grammar' | 'dialogue' | 'exercise-set' | 'speaking' | 'book';
+export type ActivityKind = 'vocab-part' | 'grammar' | 'dialogue' | 'exercise-set' | 'speaking' | 'book' | 'review';
 /**
  * `repeat`: the same unit was logged before (a re-read, "go again", a toggle off and on). The study
  * plan's time estimates should use first runs only, and ignore entries under a few seconds (for

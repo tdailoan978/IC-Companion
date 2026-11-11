@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { getSettings } from '../../lib/settings.ts';
 import type { Dialogue, Lesson } from '../../lib/content/types.ts';
 import { logActivity, markDialogueDone, useLessonProgress } from '../../lib/progress.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
@@ -13,7 +14,7 @@ export function DialogueStep({ lesson }: { lesson: Lesson }) {
   const { progress, loaded } = useLessonProgress(lesson);
   const [chosenId, setChosenId] = useState<string>();
   const [justFinished, setJustFinished] = useState<string>();
-  const [showPinyin, setShowPinyin] = useState(true);
+  const [showPinyin, setShowPinyin] = useState(getSettings().showPinyin);
   const [showEnglish, setShowEnglish] = useState(true);
   // Active time on the dialogue being read (PLAN.md 9.1); restarts when switching dialogues.
   const timer = useActiveTimer();
