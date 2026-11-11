@@ -8,9 +8,11 @@ const BUILD_INFO = {
   commit: (process.env.GITHUB_SHA ?? '').slice(0, 7),
 };
 
-// GitHub Pages serves the site at https://<user>.github.io/ic-companion/
+// Relative asset paths, so the site works at any address: GitHub Pages serves it at
+// https://tdailoan978.github.io/IC-Companion/ (paths there are case-sensitive), and
+// hash routing keeps every screen on that one page.
 export default defineConfig({
-  base: '/ic-companion/',
+  base: './',
   plugins: [react()],
   define: {
     __BUILD_INFO__: JSON.stringify(BUILD_INFO),

@@ -14,7 +14,7 @@ Needs Node 22.18 or later.
 | Command | What it does |
 |---|---|
 | `npm install` | Install dependencies |
-| `npm run dev` | Build the lesson JSON, then start the dev server (http://localhost:5173/ic-companion/) |
+| `npm run dev` | Build the lesson JSON, then start the dev server (http://localhost:5173/) |
 | `npm run build:content` | Parse `content/**/*.md` into `src/generated/lessons.json` (fails with file and line on bad content) |
 | `npm run typecheck` | TypeScript check, no output |
 | `npm test` | Run the Vitest tests once |
@@ -24,15 +24,15 @@ Needs Node 22.18 or later.
 
 ## Deploying to GitHub Pages (one-time setup)
 
-1. On GitHub, create an **empty** repository named `ic-companion` (no README, licence or .gitignore).
+1. On GitHub, create an **empty** repository (this one is `IC-Companion`) (no README, licence or .gitignore).
 2. Push this repo to it:
    ```sh
-   git remote add origin https://github.com/<your-user>/ic-companion.git
+   git remote add origin https://github.com/<your-user>/IC-Companion.git
    git push -u origin main
    ```
 3. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
 4. Every push to `main` now runs `.github/workflows/deploy.yml` (or run it by hand from the Actions tab).
-   The site is published at `https://<your-user>.github.io/ic-companion/`.
+   The site is published at `https://<your-user>.github.io/IC-Companion/` (capitals matter).
 
 If you rename the repository, change `base` in `vite.config.ts` to match.
 

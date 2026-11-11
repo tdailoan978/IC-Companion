@@ -3,7 +3,7 @@
 ## Milestone 1-2 (app shell)
 
 Before you start: push to GitHub, wait for the "Deploy to GitHub Pages" run to go green, then open
-`https://<your-username>.github.io/ic-companion/` in Safari on the iPad.
+**https://tdailoan978.github.io/IC-Companion/** (capitals matter) in Safari on the iPad.
 
 1. Home lists **Level 2** with ten lesson cards, L11 天气 Weather to L20 在机场 At the Airport, each with an empty progress ring.
 2. The build stamp in the Home footer matches the time of your latest push.
