@@ -1,0 +1,179 @@
+/* Grammar step (PLAN.md 5.2 step 3). Colours from theme.css tokens only. */
+
+.grammar-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-bottom: 12px;
+}
+
+.grammar-heading {
+  margin: 0;
+}
+
+.grammar-count {
+  margin: 0;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.grammar-count strong {
+  color: var(--text);
+}
+
+.grammar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 20px;
+}
+
+.grammar-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow-wrap: anywhere;
+}
+
+.grammar-card[data-done='true'] {
+  border-color: var(--ring-value);
+}
+
+.grammar-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: 1.25rem;
+}
+
+.grammar-number {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.grammar-title-text {
+  min-width: 0;
+}
+
+/* The pattern box: code parts highlighted, joining words small and plain. */
+.grammar-pattern {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.grammar-pattern p {
+  margin: 0;
+}
+
+.grammar-pattern-code {
+  color: var(--accent-text);
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.grammar-pattern-join {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.grammar-pattern-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.grammar-explanation p {
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.grammar-examples {
+  list-style: none;
+  margin: 4px 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+/* Sentence pads itself; pull it out to line its text up with the card's. */
+.grammar-examples .sentence {
+  margin-inline: -12px;
+  width: calc(100% + 24px);
+}
+
+.grammar-watch {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.grammar-watch p {
+  margin: 0;
+}
+
+.grammar-watch-label {
+  margin-bottom: 2px;
+  color: var(--accent-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.grammar-watch-text {
+  line-height: 1.6;
+}
+
+/* The source notes start lower case ("the 'one' phrase goes…"). */
+.grammar-watch-text::first-letter {
+  text-transform: uppercase;
+}
+
+.grammar-card-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.grammar-got-it-mark {
+  font-weight: 700;
+}
+
+.grammar-got-it[aria-pressed='true'] .grammar-got-it-mark {
+  color: var(--ring-value);
+}
+
+@media (max-width: 480px) {
+  .grammar-card {
+    padding: 16px 14px;
+  }
+
+  .grammar-pattern {
+    padding: 10px 12px;
+  }
+
+  .grammar-card-foot .button {
+    width: 100%;
+  }
+}
