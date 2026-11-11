@@ -178,3 +178,55 @@ works well with Apple Pencil), sentence-level review cards, Levels 3 and 4 conte
 - Keep commits small and scoped to one milestone step; run tests and the content build before each commit.
 - Ask me before adding any dependency beyond those in section 2.
 - When a milestone is finished, tell me exactly what to check on the iPad.
+
+## 9. Additions agreed on 2026-11-11
+
+Milestones 1-2 are done and live at https://tdailoan978.github.io/IC-Companion/ (Vite `base` is `./`, so the
+repo name and its capitals do not matter). The decisions below extend sections 5 and 7.
+
+### 9.1 Study plan (daily and weekly checklists, milestones)
+
+- **Week shape (set in Settings):** which days I study (default 5 days, Mon-Fri) and a daily cap
+  (default 30 min). The plan never schedules more than the cap on a day.
+- **No deadline up front.** The plan starts from a start date and schedules lesson after lesson.
+  After 10 study days of real timings, the app proposes a finish date for Volume 2. I accept or reject it,
+  and can set or change a date myself at any time.
+- **Daily checklist ("Today"),** in this order:
+  1. Review: clear the due vocabulary cards (ticks itself when none are due).
+  2. Book reading: e.g. "Read Part 1 text, p. 2-3", using the lesson's book references.
+     I tick it myself; ticking asks how long it took (quick buttons: 5 / 10 / 15 / 20+ min).
+  3. New words: a slice of the current part's vocabulary (ticks itself when the flashcards are done).
+  4. Grammar point, dialogue, or exercise set (ticks itself when finished in the lesson screens).
+  5. Speaking prompts said aloud (ticks itself after the last prompt card).
+- **Order inside a lesson:** Part 1 reading → Part 1 words → first half of the grammar → Dialogue 1 →
+  Part 2 reading → Part 2 words → remaining grammar → Dialogue 2 → Exercises E1-E4 → Speaking.
+- **Time estimates:** start from defaults (book 3 min/page, new word 2 min, grammar point 10 min,
+  dialogue 15 min, exercise set 8 min, speaking 5 min, review 20 s/card) and replace each with the median
+  of my own measured times once there are 3 or more measurements. The app times the tasks it hosts.
+- **Missed days:** unfinished tasks roll forward and the rest of the plan is re-spread under the cap.
+  If a deadline is set and can no longer be met under the cap, show a plain warning with a suggested new
+  date that I can accept or dismiss. Never raise the daily load above the cap.
+- **Weekly view:** this week's days with planned vs. done tasks and minutes; next week's preview.
+- **Milestones:** a lesson is complete when every step is ticked (as in 5.2). Lesson and volume milestones
+  show on Home and in the weekly view. Nothing is locked: I can still open any lesson or step.
+- Plan state is in IndexedDB and is part of Export/Import (5.4).
+
+### 9.2 Companion features (after milestone 6)
+
+1. **Progress calendar:** month view of study days, minutes and lessons finished.
+2. **Speaking check:** say a dialogue line or speaking prompt; Safari speech recognition (`zh-CN`) shows
+   what it heard next to the target. If recognition is unavailable, say so and hide the button.
+3. **Listening drills:** hear a dialogue sentence without text, then pick or type it; sentence-level review
+   cards from the dialogues.
+4. **Handwriting with Apple Pencil:** stroke-order animation and tracing quizzes for each lesson's new
+   characters (`hanzi-writer` with its stroke data bundled for offline use: ask me before adding it).
+
+### 9.3 Revised build order and iPad stops
+
+- **Stop A:** milestones 3 and 4 (Vocabulary, Grammar, Dialogues read mode with speech, Exercises,
+  lesson progress ticks). Check on the iPad by studying L11.
+- **Stop B:** milestone 5 (Review, Settings, export/import) together with the study plan (9.1).
+- **Then:** milestone 6 (offline and polish), then the features in 9.2 in that order.
+- Known item for milestone 3: a few Pattern lines hold several backtick groups joined by prose
+  ("`A` compared with `B`"); render the backticked parts as the highlighted pattern and the joining words
+  as plain text rather than one merged string.
