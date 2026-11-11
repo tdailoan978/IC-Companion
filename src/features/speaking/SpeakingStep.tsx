@@ -3,6 +3,7 @@ import type { Lesson } from '../../lib/content/types.ts';
 import { logActivity, markSpeakingDone, useLessonProgress } from '../../lib/progress.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
 import { SpeakButton } from '../../app/SpeakButton.tsx';
+import { clearSpeakingIndex, loadSpeakingIndex, restoredIndex, saveSpeakingIndex } from './savedIndex.ts';
 import './speaking.css';
 
 /**
@@ -19,6 +20,21 @@ export function SpeakingStep({ lesson }: { lesson: Lesson }) {
   const cardHeading = useRef<HTMLParagraphElement>(null);
   const doneHeading = useRef<HTMLHeadingElement>(null);
   const moved = useRef(false);
+  /** Until the saved place has been read, the card is not shown (so it does not jump). */
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadSpeakingIndex(lesson).then((saved) => {
+      if (cancelled) return;
+      setIndex(restoredIndex(saved, lesson.speaking.length));
+      setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Only on mount (the lesson screen remounts this step for another lesson).
+  }, []);
 
   // After Previous/Next, put focus on the new question so a keyboard or VoiceOver user hears it.
   useEffect(() => {
@@ -29,15 +45,18 @@ export function SpeakingStep({ lesson }: { lesson: Lesson }) {
   }, [finished]);
 
   if (prompts.length === 0) return <p className="muted">This lesson has no speaking prompts.</p>;
+  if (!ready) return <article className="step speaking" aria-busy="true" />;
 
   const go = (next: number) => {
     moved.current = true;
     setIndex(next);
     setRevealed(false);
+    void saveSpeakingIndex(lesson, next);
   };
 
   const finish = () => {
     setFinished(true);
+    void clearSpeakingIndex(lesson);
     void markSpeakingDone(lesson);
     void logActivity(lesson, 'speaking', `${lesson.id}.speaking`, timer.elapsed(), prompts.length);
   };
@@ -48,6 +67,7 @@ export function SpeakingStep({ lesson }: { lesson: Lesson }) {
     setRevealed(false);
     setFinished(false);
     timer.reset();
+    void clearSpeakingIndex(lesson);
   };
 
   const prompt = prompts[index];

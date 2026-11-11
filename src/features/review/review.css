@@ -1,0 +1,96 @@
+/* Review session (PLAN.md 5.3). The card itself uses the flashcard styles (vocab.css). Theme tokens only. */
+
+.review-header {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.review-header h1 {
+  margin-top: 0;
+}
+
+.review-eyebrow {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.review-session {
+  max-width: 680px;
+  margin: 16px auto 0;
+}
+
+.review-tally {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-source {
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
+
+.review-source-zh {
+  font-size: max(var(--zh-size), 1.15em);
+}
+
+.review-panel {
+  max-width: 680px;
+  margin: 16px auto 0;
+  padding: 28px 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.review-panel h2 {
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+
+.review-done-heading {
+  color: var(--ring-value);
+}
+
+.review-done-heading:focus {
+  outline: none;
+}
+
+.review-counts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.review-counts div {
+  min-width: 140px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.review-counts dt {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.review-counts dd {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}

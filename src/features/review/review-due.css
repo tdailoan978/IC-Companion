@@ -1,0 +1,21 @@
+/* Home "Review due: N" button: same shape as the Continue button beside it. Theme tokens only. */
+
+.review-due-button {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: 10px 20px;
+  text-align: left;
+}
+
+.review-due-kicker {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+
+.review-due-count {
+  font-variant-numeric: tabular-nums;
+}

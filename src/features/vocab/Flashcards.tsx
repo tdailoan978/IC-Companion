@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import type { Lesson, VocabItem } from '../../lib/content/types.ts';
-import { logActivity, markVocabPartDone } from '../../lib/progress.ts';
+import { lessonKey } from '../../lib/content/types.ts';
+import { todayDay } from '../../lib/days.ts';
+import { logActivity, markVocabPartDone, recordVocabGot } from '../../lib/progress.ts';
+import { addCards, updateReviewCards } from '../../lib/review.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
 import { SpeakButton } from '../../app/SpeakButton.tsx';
 import { ToggleChip } from '../../app/ToggleChip.tsx';
 import { again, cardsLeft, createDeck, currentCard, deckSize, gotIt, isFinished, reorderQueue, shuffled, type Deck } from './deck.ts';
 import { isDrag, swipeProgress, swipeResult } from './swipe.ts';
+import { clearSavedDeck, fromSavedDeck, loadSavedDeck, saveDeck, toSavedDeck } from './savedDeck.ts';
 
 type Part = 1 | 2;
 type Answer = 'got-it' | 'again';
@@ -30,8 +34,9 @@ const bookOrder = (cards: readonly VocabItem[]) => [...cards].sort((a, b) => a.n
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * Flashcards for one part. Mounting starts the part's run (and its active timer); finishing it
- * records the part as done and logs how long it took for the study plan (PLAN.md 9.1).
+ * Flashcards for one part. Mounting starts the part's run (and its active timer), or resumes the
+ * saved one; every answer saves the place. Finishing records the part as done, adds its words to
+ * review and logs how long it took for the study plan (PLAN.md 9.1).
  */
 export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, onShuffle, otherPart, onSwitchPart, onShowList }: Props) {
   const timer = useActiveTimer();
@@ -47,8 +52,31 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
   const ignoreClickUntil = useRef(0);
   const flyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const finishedHeading = useRef<HTMLHeadingElement>(null);
+  /** Until the saved place has been read, the deck is not shown, so an answer cannot overwrite it. */
+  const [ready, setReady] = useState(false);
+  /** Active time from earlier sittings of a resumed run. */
+  const priorMs = useRef(0);
+  const elapsed = () => priorMs.current + timer.elapsed();
 
   useEffect(() => () => clearTimeout(flyTimer.current), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadSavedDeck(lesson, part).then((saved) => {
+      if (cancelled) return;
+      const restored = fromSavedDeck(saved, words);
+      if (restored) {
+        deckRef.current = restored.deck;
+        setDeck(restored.deck);
+        priorMs.current = restored.ms;
+      }
+      setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Only on mount: later changes to the deck are this component's own.
+  }, []);
 
   const card = currentCard(deck);
   const finished = isFinished(deck);
@@ -70,9 +98,15 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     setFlipped(false);
     setDragX(0);
     setLeaving(null);
+    if (kind === 'got-it') void recordVocabGot(lesson, before.queue[0].id);
     if (isFinished(next)) {
+      void clearSavedDeck(lesson, part);
       void markVocabPartDone(lesson, part);
-      void logActivity(lesson, 'vocab-part', `${lesson.id}.p${part}`, timer.elapsed(), words.length);
+      const ids = words.map((w) => w.id);
+      void updateReviewCards((cards) => addCards(cards, lessonKey(lesson), ids, todayDay()));
+      void logActivity(lesson, 'vocab-part', `${lesson.id}.p${part}`, elapsed(), words.length);
+    } else {
+      void saveDeck(lesson, part, toSavedDeck(next, elapsed()));
     }
   }
 
@@ -91,12 +125,16 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     setDragX(0);
     setLeaving(null);
     timer.reset();
+    priorMs.current = 0;
+    void clearSavedDeck(lesson, part);
   }
 
   function toggleShuffle(on: boolean) {
     onShuffle(on);
-    setDeckNow(reorderQueue(deckRef.current, on ? (q) => shuffled(q) : bookOrder));
+    const next = reorderQueue(deckRef.current, on ? (q) => shuffled(q) : bookOrder);
+    setDeckNow(next);
     setFlipped(false);
+    if (!isFinished(next)) void saveDeck(lesson, part, toSavedDeck(next, elapsed()));
   }
 
   // ---- swipe (pointer events: touch, pen and mouse alike) ----
@@ -163,7 +201,7 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
         <h2 id="fc-finished-heading" ref={finishedHeading} tabIndex={-1}>
           <span aria-hidden="true">✓ </span>Part {part} done
         </h2>
-        <p>These words join your review queue in milestone 5.</p>
+        <p>These words join your review from tomorrow.</p>
         <p className="muted">
           {words.length} words{deck.agains > 0 ? ` · ${deck.agains} × again` : ''}
         </p>
@@ -184,6 +222,7 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     );
   }
 
+  if (!ready) return <section className="flashcards" aria-busy="true" aria-label={`Part ${part} flashcards`} />;
   if (!card) return null;
 
   const left = cardsLeft(deck);
