@@ -15,7 +15,7 @@ export const THEME_CHOICES: { value: ThemeChoice; label: string }[] = [
 export const THEME_CACHE_KEY = 'ic-theme';
 
 /** Header / status bar colours, kept in step with --header-bg in the CSS. */
-const THEME_COLOR = { light: '#b71c1c', dark: '#3b0d0d' } as const;
+const THEME_COLOR = { light: '#b71c1c', dark: '#8b1a1a' } as const;
 
 export function isThemeChoice(value: unknown): value is ThemeChoice {
   return value === 'system' || value === 'light' || value === 'dark';

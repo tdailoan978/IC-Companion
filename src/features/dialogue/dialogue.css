@@ -138,7 +138,7 @@
 }
 
 .dialogue-turn[data-tone='1'] .sentence.dialogue-bubble {
-  background: var(--accent-soft);
+  background: var(--bubble-tone-1);
   border-color: transparent;
 }
 

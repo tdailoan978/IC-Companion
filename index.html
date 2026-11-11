@@ -18,7 +18,7 @@
     <!-- Theme: colours match --header-bg; src/lib/theme.ts keeps them in step -->
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#b71c1c" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#3b0d0d" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#8b1a1a" />
     <script>
       // Apply a saved manual theme before first paint (no flash). The key
       // matches THEME_CACHE_KEY in src/lib/theme.ts.
@@ -26,7 +26,7 @@
         var t = localStorage.getItem('ic-theme');
         if (t === 'light' || t === 'dark') {
           document.documentElement.setAttribute('data-theme', t);
-          var c = t === 'dark' ? '#3b0d0d' : '#b71c1c';
+          var c = t === 'dark' ? '#8b1a1a' : '#b71c1c';
           document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
             m.setAttribute('content', c);
           });
