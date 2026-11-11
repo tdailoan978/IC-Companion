@@ -1,0 +1,109 @@
+/* Speaking step: one prompt card at a time. Colours are theme tokens only. */
+
+.speaking-intro {
+  margin: 0;
+}
+
+.speaking-card,
+.speaking-done {
+  max-width: 680px;
+  margin-top: 20px;
+  padding: 24px 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.speaking-count {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.speaking-count-done {
+  font-weight: 400;
+}
+
+.speaking-zh {
+  margin: 0 0 20px;
+  font-size: max(var(--zh-size), min(calc(var(--zh-size) * 1.5), 7vw));
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.speaking-zh:focus {
+  outline: none;
+}
+
+.speaking-hear {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 20px;
+}
+
+.speaking-hear-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.speaking-reveal-body {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.speaking-reveal-body p {
+  margin: 0;
+}
+
+.speaking-pinyin {
+  font-size: 1.15rem;
+}
+
+.speaking-reveal-body .speaking-en {
+  margin-top: 6px;
+}
+
+.speaking-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 680px;
+  margin-top: 16px;
+}
+
+.speaking-nav .button {
+  min-width: 120px;
+}
+
+.speaking-nav .button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.speaking-done {
+  text-align: center;
+}
+
+.speaking-done h2 {
+  font-size: 1.5rem;
+  color: var(--ring-value);
+}
+
+.speaking-done h2:focus {
+  outline: none;
+}
+
+.speaking-done p {
+  margin: 0;
+}
+
+.speaking-done-actions {
+  margin-top: 20px;
+}
