@@ -95,3 +95,48 @@ build stamp.
 11. **Rest day:** on a Saturday or Sunday, Home and the plan say it's a rest day and name the next study day.
 
 Results: passed (2026-11-13). The owner did all the checks and has used the app for a few days with no problems.
+
+## Stop C: notes, deep links, Notebook and My words (PLAN 9.4)
+
+Push from GitHub Desktop, wait for the green Actions run, open the app from the Home Screen and check the build
+stamp. Export a backup first (gear → Backup).
+
+Put the app and your textbook PDF (Books or Files) side by side in Split View, half and half.
+
+1. **Plan items open exactly their item:** from Today, tap each kind of task. Check each one, and that a
+   "‹ Today" bar appears at the top:
+   - a "Read …" task opens its reading page;
+   - a "New words …" task starts flashcards for just those words;
+   - a grammar task scrolls to that card;
+   - a dialogue task opens that dialogue;
+   - an exercise task starts that set.
+2. **Next:** finish one of them (e.g. the word slice). The bar now offers "Next: …". Nothing moves by itself.
+3. **Reading page:**
+   - The timer counts while you read.
+   - Switch to Books full screen for a minute and come back: that minute isn't counted.
+   - "Done reading" lets you adjust the minutes before saving, and the task is ticked on Today.
+4. **Pencil (most important):**
+   - In Write, ink follows the pen with no lag, even after a lot of writing, and gets thicker as you press harder.
+   - Resting your palm leaves no marks, and nothing gets selected or highlighted.
+   - One finger scrolls; the Pencil never scrolls.
+   - The eraser, undo and clear work, and the page grows as you reach the bottom.
+5. **Typed notes:** in Type, Scribble with the Pencil turns handwriting into text (Chinese too, if you've added a Chinese keyboard).
+6. **Full width:** one tap makes the writing area fill the screen, and one tap brings it back.
+7. **Notes stay:** write a note, close the app fully at once, reopen it. Ink and text are still there.
+8. **Note buttons:** grammar cards, dialogues, each word (list and flashcard back) and each exercise set
+   have a note button. Ones with a note show a dot.
+9. **Notebook (book icon in the header, or Home):**
+   - notes are grouped by lesson with a small ink picture;
+   - tapping one expands it;
+   - "Search typed notes" finds words in your typed text.
+10. **Print / Save as PDF:** in the Notebook, try "Print this lesson" from the **Home Screen app**:
+    - does the print sheet open?
+    - Pinch out on the preview → Share → Save to Files. Does the PDF show ink and text in light colours?
+
+    If printing doesn't work from the Home Screen app, note it. A PDF library is the fallback and needs your OK.
+11. **My words:**
+    - In a note, "Add to my words": type 雪人, and the pinyin fills itself in (you can change it). Add a meaning and save.
+    - It's in the Notebook → My words list, where you can edit or delete it.
+    - Tomorrow it shows up in Review as "My word" with a link to its note.
+
+Results:
