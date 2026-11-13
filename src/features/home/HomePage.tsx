@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { lessonsByLevel } from '../../lib/content/lessons.ts';
 import { BuildStamp } from '../../app/BuildStamp.tsx';
 import { ContinueButton } from './ContinueButton.tsx';
@@ -14,6 +15,9 @@ export function HomePage() {
       <div className="home-actions">
         <ReviewDueButton />
         <ContinueButton />
+        <Link to="/notebook" className="button button-quiet">
+          Notebook
+        </Link>
       </div>
 
       {lessonsByLevel.map(({ level, lessons }) => (

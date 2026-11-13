@@ -1,0 +1,36 @@
+.note-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  justify-content: center;
+}
+
+.note-button[data-has] {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.note-button-compact {
+  padding: 0;
+  width: 44px;
+}
+
+.note-button-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}

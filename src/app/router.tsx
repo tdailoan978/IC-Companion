@@ -8,6 +8,9 @@ import { LessonStep } from '../features/lesson/LessonStep.tsx';
 import { ReviewPage } from '../features/review/ReviewPage.tsx';
 import { SettingsPage } from '../features/settings/SettingsPage.tsx';
 import { PlanPage } from '../features/plan/PlanPage.tsx';
+import { NotePage } from '../features/notes/NotePage.tsx';
+import { NotebookPage } from '../features/notebook/NotebookPage.tsx';
+import { MyWordsPage } from '../features/mywords/MyWordsPage.tsx';
 import { NotePagePrototype } from '../features/prototype/NotePagePrototype.tsx';
 
 // Hash routing: GitHub Pages cannot rewrite deep links to index.html.
@@ -17,6 +20,9 @@ import { NotePagePrototype } from '../features/prototype/NotePagePrototype.tsx';
 //   #/review                    today's vocabulary review session
 //   #/plan                      study plan: today's checklist and the week
 //   #/settings                  settings, export / import, reset
+//   #/note/:level/:id/:kind/:ref  one note (book tasks: the reading page with its timer)
+//   #/notebook                  every note, by lesson; search; print to PDF
+//   #/my-words                  words I added to review from my notes
 export const router = createHashRouter([
   {
     element: <Shell />,
@@ -34,6 +40,9 @@ export const router = createHashRouter([
       { path: 'review', element: <ReviewPage /> },
       { path: 'plan', element: <PlanPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'note/:level/:id/:kind/:ref', element: <NotePage /> },
+      { path: 'notebook', element: <NotebookPage /> },
+      { path: 'my-words', element: <MyWordsPage /> },
       // PROTOTYPE: remove when the real note page is built
       { path: 'prototype/note', element: <NotePagePrototype /> },
       { path: '*', element: <NotFound /> },

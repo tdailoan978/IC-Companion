@@ -230,3 +230,14 @@ repo name and its capitals do not matter). The decisions below extend sections 5
 - Known item for milestone 3: a few Pattern lines hold several backtick groups joined by prose
   ("`A` compared with `B`"); render the backticked parts as the highlighted pattern and the joining words
   as plain text rather than one merged string.
+
+### 9.4 Plan deep links, reading notes, the Notebook and own words (agreed 2026-11-13)
+
+The full spec and the prototype result are in `docs/NOTES_AND_DEEP_LINKS.md`. In short:
+- Plan items open exactly their item, with a "Back to Today" bar.
+- Reading tasks open a note page with an active-time timer.
+- Apple Pencil vector-ink and typed notes on every item, all in one Notebook with print-to-PDF.
+- "Add to my words" own review cards (pinyin-pro 3.29.5, loaded only when adding a word).
+- The note page uses prototype layout B.
+- Stop for an iPad check afterwards.
+

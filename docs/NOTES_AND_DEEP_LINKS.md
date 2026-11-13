@@ -109,3 +109,22 @@ tasks to `/plan`.
   - Print → Save as PDF from the Home Screen app;
   - reading time logged after Done reading;
   - an own word showing up in review the next day.
+
+## 6. Prototype result (2026-11-13)
+
+Three note-page layouts were tried on the iPad (commit 0938bed, branch `prototype/notes`). The owner picked
+**B, "Bottom toolbar"**: a "Write | Type" switch with the ink area or the typed text filling the space, and a
+sticky bottom bar with the timer, pen widths, eraser, undo and Done. It was the easiest to navigate and gave
+the best Pencil response.
+
+Problems seen, with their causes in the prototype, which the real build must fix:
+- **Writing lagged.** Every pointer move set React state, which re-sized the canvas (clearing it) and redrew
+  every stroke. Draw new segments straight onto the canvas instead. Redraw everything only on undo, erase,
+  resize or load. Never resize the bitmap during a stroke.
+- **Random "select all" / highlighted text (C).** iPadOS text-selection gestures fired under the Pencil.
+  Use `user-select: none` and `-webkit-touch-callout: none` on the ink area and toolbars, and cancel
+  `selectstart` while the pen is down. The textarea stays selectable.
+- **A did not draw.** With `touch-action: pan-y` inside a scrolling page, iPadOS treated Pencil strokes as
+  scrolls and cancelled them. Add a non-passive `touchstart`/`touchmove` listener that calls `preventDefault()`
+  only when `touch.touchType === 'stylus'`, so the Pencil never scrolls while a finger still does.
+- Scribble into the typed text worked well.

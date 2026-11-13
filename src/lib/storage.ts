@@ -2,7 +2,7 @@
 // on the device goes through here. Storage can be unavailable (for example a
 // private window), so reads fall back to a default and writes never throw.
 
-import { clear, createStore, entries, get, promisifyRequest, set } from 'idb-keyval';
+import { clear, createStore, del, entries, get, keys, promisifyRequest, set } from 'idb-keyval';
 import type { ThemeChoice } from './theme.ts';
 
 // iOS WebKit can drop its IndexedDB connection (for example after the app sat in
@@ -100,3 +100,19 @@ export async function replaceAll(items: [string, unknown][]): Promise<void> {
 
 /** Deletes everything saved (Reset). Throws on failure. */
 export const clearAll = () => withRetry(() => clear(store));
+
+/** Every saved key (cheap: no values). Throws if storage cannot be read. */
+export const allKeys = () => withRetry(() => keys<string>(store));
+
+/** Deletes one key. Never throws; a failure raises the save warning. */
+export async function remove(key: string): Promise<boolean> {
+  try {
+    await withRetry(() => del(key, store));
+    setSaveFailed(false);
+    return true;
+  } catch (err) {
+    console.warn(`Could not delete ${key}`, err);
+    setSaveFailed(true);
+    return false;
+  }
+}
