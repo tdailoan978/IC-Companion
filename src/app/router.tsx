@@ -11,7 +11,6 @@ import { PlanPage } from '../features/plan/PlanPage.tsx';
 import { NotePage } from '../features/notes/NotePage.tsx';
 import { NotebookPage } from '../features/notebook/NotebookPage.tsx';
 import { MyWordsPage } from '../features/mywords/MyWordsPage.tsx';
-import { NotePagePrototype } from '../features/prototype/NotePagePrototype.tsx';
 
 // Hash routing: GitHub Pages cannot rewrite deep links to index.html.
 //   #/                          Home
@@ -43,8 +42,6 @@ export const router = createHashRouter([
       { path: 'note/:level/:id/:kind/:ref', element: <NotePage /> },
       { path: 'notebook', element: <NotebookPage /> },
       { path: 'my-words', element: <MyWordsPage /> },
-      // PROTOTYPE: remove when the real note page is built
-      { path: 'prototype/note', element: <NotePagePrototype /> },
       { path: '*', element: <NotFound /> },
     ],
   },
