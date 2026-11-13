@@ -51,6 +51,18 @@
   gap: 10px;
   margin: 0 0 14px;
   font-size: 1.25rem;
+  /* Opened for one point (?item=): clear the sticky step bar and the "Back to Today" bar. */
+  scroll-margin-top: 136px;
+}
+
+.grammar-title:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (min-width: 821px) and (orientation: landscape) {
+  .grammar-title {
+    scroll-margin-top: 76px;
+  }
 }
 
 .grammar-number {
@@ -151,7 +163,9 @@
 
 .grammar-card-foot {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
@@ -174,6 +188,6 @@
   }
 
   .grammar-card-foot .button {
-    width: 100%;
+    flex: 1;
   }
 }

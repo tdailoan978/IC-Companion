@@ -1,12 +1,16 @@
-import type { VocabItem } from '../../lib/content/types.ts';
+import type { Lesson, VocabItem } from '../../lib/content/types.ts';
 import { speakChinese } from '../../lib/speech.ts';
+import { NoteButton } from '../notes/NoteButton.tsx';
 
-/** List mode: one row per word; tapping a row reads the Chinese aloud. */
-export function VocabList({ words }: { words: VocabItem[] }) {
+/** The row's element id, for links to one word (?item=L11.v.12). */
+export const vocabRowId = (vocabId: string) => `vocab-${vocabId}`;
+
+/** List mode: one row per word; tapping a row reads the Chinese aloud. Each word has its own note. */
+export function VocabList({ lesson, words, highlight }: { lesson: Pick<Lesson, 'level' | 'id'>; words: VocabItem[]; highlight?: string }) {
   return (
     <ol className="vocab-list">
       {words.map((v) => (
-        <li key={v.id}>
+        <li key={v.id} id={vocabRowId(v.id)} data-highlight={highlight === v.id || undefined}>
           {/* Speak inside the tap itself: iOS blocks speech started after an await. */}
           <button type="button" className="vocab-row" onClick={() => void speakChinese(v.zh)}>
             <span className="vocab-n" aria-hidden="true">
@@ -29,6 +33,8 @@ export function VocabList({ words }: { words: VocabItem[] }) {
               <path d="M16 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
+          {/* A sibling of the row (a link cannot sit inside a button), so it never triggers the speech. */}
+          <NoteButton note={{ level: lesson.level, lessonId: lesson.id, kind: 'vocab', ref: v.id }} label={v.zh} compact />
         </li>
       ))}
     </ol>

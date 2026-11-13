@@ -7,6 +7,27 @@
   margin: 20px 0 20px;
 }
 
+/* A study-plan slice: "Part 1, words 1–7", the mode switch and a way out to all the words. */
+.vocab-slice-controls {
+  align-items: center;
+}
+
+/* Title and "All words" share the first line; the List / Flashcards switch goes below. */
+.vocab-slice-title {
+  flex: 1 1 60%;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.vocab-slice-all {
+  order: 1;
+}
+
+.vocab-slice-controls .segmented {
+  order: 2;
+}
+
 /* A row of pressable options (one pressed at a time). */
 .segmented {
   display: inline-flex;
@@ -71,6 +92,56 @@
 
 .vocab-list li + li {
   border-top: 1px solid var(--border);
+}
+
+.vocab-list li {
+  display: flex;
+  align-items: center;
+}
+
+.vocab-list .vocab-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.vocab-list .note-button {
+  flex: none;
+  margin-right: 8px;
+}
+
+/* One word opened by a link (?item=L11.v.12): clear the sticky bars, and flash the row. */
+.vocab-list li {
+  scroll-margin-top: 136px;
+}
+
+@media (min-width: 821px) and (orientation: landscape) {
+  .vocab-list li {
+    scroll-margin-top: 76px;
+  }
+}
+
+.vocab-list li[data-highlight] {
+  animation: vocab-row-flash 2.5s ease-out;
+}
+
+@keyframes vocab-row-flash {
+  0%,
+  40% {
+    background: var(--accent-soft);
+    box-shadow: inset 4px 0 0 var(--accent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: inset 4px 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vocab-list li[data-highlight] {
+    animation: none;
+    background: var(--accent-soft);
+    box-shadow: inset 4px 0 0 var(--accent);
+  }
 }
 
 .vocab-row {
@@ -289,6 +360,12 @@
   right: 10px;
 }
 
+.fc-note {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
 /* "Got it" / "Again" stamps fade in as the card is dragged towards a side. */
 .fc-stamp {
   position: absolute;
@@ -314,8 +391,9 @@
   opacity: var(--fc-again, 0);
 }
 
-.fc-card[data-flipped] .fc-stamp-again {
-  /* keep clear of the speak button */
+.fc-card[data-flipped] .fc-stamp-again,
+.fc-card[data-flipped] .fc-stamp-got {
+  /* keep clear of the speak and note buttons */
   top: 64px;
 }
 

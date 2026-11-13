@@ -2,11 +2,13 @@ import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, ty
 import type { Lesson, VocabItem } from '../../lib/content/types.ts';
 import { lessonKey } from '../../lib/content/types.ts';
 import { todayDay } from '../../lib/days.ts';
-import { logActivity, markVocabPartDone, recordVocabGot } from '../../lib/progress.ts';
+import { getProgress, logActivity, markVocabPartDone, recordVocabGot } from '../../lib/progress.ts';
 import { addCards, updateReviewCards } from '../../lib/review.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
 import { SpeakButton } from '../../app/SpeakButton.tsx';
 import { ToggleChip } from '../../app/ToggleChip.tsx';
+import { allGot, type WordSlice } from '../deeplink/links.ts';
+import { NoteButton } from '../notes/NoteButton.tsx';
 import { again, cardsLeft, createDeck, currentCard, deckSize, gotIt, isFinished, reorderQueue, shuffled, type Deck } from './deck.ts';
 import { isDrag, swipeProgress, swipeResult } from './swipe.ts';
 import { clearSavedDeck, fromSavedDeck, loadSavedDeck, saveDeck, toSavedDeck } from './savedDeck.ts';
@@ -25,6 +27,11 @@ type Props = {
   otherPart?: Part;
   onSwitchPart: (part: Part) => void;
   onShowList: () => void;
+  /**
+   * A study-plan word slice (?item=p1.s2): a run of only these words, kept in memory. It never reads
+   * or writes the part's saved deck, so the whole-part flashcards keep their place.
+   */
+  slice?: WordSlice;
 };
 
 /** How long a swiped card takes to fly off (matches the CSS transition). */
@@ -37,8 +44,12 @@ const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(pre
  * Flashcards for one part. Mounting starts the part's run (and its active timer), or resumes the
  * saved one; every answer saves the place. Finishing records the part as done, adds its words to
  * review and logs how long it took for the study plan (PLAN.md 9.1).
+ *
+ * With `slice`: a run of the slice's words only, not saved. Every "Got it" is still recorded (the
+ * plan ticks the slice when all its words are got); finishing adds the slice's words to review,
+ * logs the time, and marks the part done once every word of the part has been got.
  */
-export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, onShuffle, otherPart, onSwitchPart, onShowList }: Props) {
+export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, onShuffle, otherPart, onSwitchPart, onShowList, slice }: Props) {
   const timer = useActiveTimer();
   const [deck, setDeck] = useState<Deck<VocabItem>>(() => createDeck(words, { shuffle }));
   const deckRef = useRef(deck);
@@ -53,7 +64,7 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
   const flyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const finishedHeading = useRef<HTMLHeadingElement>(null);
   /** Until the saved place has been read, the deck is not shown, so an answer cannot overwrite it. */
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(Boolean(slice));
   /** Active time from earlier sittings of a resumed run. */
   const priorMs = useRef(0);
   const elapsed = () => priorMs.current + timer.elapsed();
@@ -61,6 +72,7 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
   useEffect(() => () => clearTimeout(flyTimer.current), []);
 
   useEffect(() => {
+    if (slice) return; // a slice run starts fresh and is never saved
     let cancelled = false;
     loadSavedDeck(lesson, part).then((saved) => {
       if (cancelled) return;
@@ -98,7 +110,11 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     setFlipped(false);
     setDragX(0);
     setLeaving(null);
-    if (kind === 'got-it') void recordVocabGot(lesson, before.queue[0].id);
+    const got = kind === 'got-it' ? recordVocabGot(lesson, before.queue[0].id) : Promise.resolve();
+    if (slice) {
+      if (isFinished(next)) finishSlice(slice, got);
+      return;
+    }
     if (isFinished(next)) {
       void clearSavedDeck(lesson, part);
       void markVocabPartDone(lesson, part);
@@ -108,6 +124,18 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     } else {
       void saveDeck(lesson, part, toSavedDeck(next, elapsed()));
     }
+  }
+
+  function finishSlice(s: WordSlice, lastGot: Promise<void>) {
+    const ids = words.map((w) => w.id);
+    void updateReviewCards((cards) => addCards(cards, lessonKey(lesson), ids, todayDay()));
+    void logActivity(lesson, 'vocab-part', `${lesson.id}.${s.key}`, elapsed(), words.length);
+    // The last slice of a part finishes the part, as the whole-part flashcards would.
+    void lastGot.then(() => {
+      const p = getProgress(lesson);
+      const partIds = lesson.vocab.filter((v) => v.part === part).map((v) => v.id);
+      if (p && !p.vocabParts[String(part) as '1' | '2'] && allGot(partIds, p.vocabGot)) void markVocabPartDone(lesson, part);
+    });
   }
 
   /** Flies the card off to its side, then answers. Buttons and swipes both go through here. */
@@ -126,7 +154,7 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     setLeaving(null);
     timer.reset();
     priorMs.current = 0;
-    void clearSavedDeck(lesson, part);
+    if (!slice) void clearSavedDeck(lesson, part);
   }
 
   function toggleShuffle(on: boolean) {
@@ -134,14 +162,14 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     const next = reorderQueue(deckRef.current, on ? (q) => shuffled(q) : bookOrder);
     setDeckNow(next);
     setFlipped(false);
-    if (!isFinished(next)) void saveDeck(lesson, part, toSavedDeck(next, elapsed()));
+    if (!slice && !isFinished(next)) void saveDeck(lesson, part, toSavedDeck(next, elapsed()));
   }
 
   // ---- swipe (pointer events: touch, pen and mouse alike) ----
 
   function onPointerDown(e: PointerEvent<HTMLDivElement>) {
     if (leaving || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    if ((e.target as Element).closest('.speak-button')) return;
+    if ((e.target as Element).closest('.speak-button, .note-button')) return;
     press.current = { id: e.pointerId, x: e.clientX, y: e.clientY, drag: false };
     cardWidth.current = e.currentTarget.getBoundingClientRect().width;
   }
@@ -195,6 +223,29 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     setFlipped((f) => !f);
   }
 
+  if (finished && slice) {
+    return (
+      <section className="fc-finished" aria-labelledby="fc-finished-heading">
+        <h2 id="fc-finished-heading" ref={finishedHeading} tabIndex={-1}>
+          <span aria-hidden="true">✓ </span>
+          {slice.label} done
+        </h2>
+        <p>Every word in this slice is learned. They join your review from tomorrow.</p>
+        <p className="muted">
+          {words.length} words{deck.agains > 0 ? ` · ${deck.agains} × again` : ''}
+        </p>
+        <div className="fc-finished-actions">
+          <button type="button" className="button button-quiet" onClick={restart}>
+            Go again
+          </button>
+          <button type="button" className="button button-quiet" onClick={onShowList}>
+            Word list
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   if (finished) {
     return (
       <section className="fc-finished" aria-labelledby="fc-finished-heading">
@@ -222,7 +273,8 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     );
   }
 
-  if (!ready) return <section className="flashcards" aria-busy="true" aria-label={`Part ${part} flashcards`} />;
+  const runLabel = slice ? `${slice.label} flashcards` : `Part ${part} flashcards`;
+  if (!ready) return <section className="flashcards" aria-busy="true" aria-label={runLabel} />;
   if (!card) return null;
 
   const left = cardsLeft(deck);
@@ -239,7 +291,7 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
   const long = card.zh.length > 4;
 
   return (
-    <section className="flashcards" aria-label={`Part ${part} flashcards`}>
+    <section className="flashcards" aria-label={runLabel}>
       <div className="fc-toolbar">
         <p className="fc-left" aria-live="polite">
           <strong>{left}</strong> left
@@ -308,9 +360,14 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
             )}
           </button>
           {flipped && (
-            <span className="fc-speak">
-              <SpeakButton text={card.zh} label={`Hear ${card.zh}`} />
-            </span>
+            <>
+              <span className="fc-speak">
+                <SpeakButton text={card.zh} label={`Hear ${card.zh}`} />
+              </span>
+              <span className="fc-note">
+                <NoteButton note={{ level: lesson.level, lessonId: lesson.id, kind: 'vocab', ref: card.id }} label={card.zh} compact />
+              </span>
+            </>
           )}
         </div>
       </div>

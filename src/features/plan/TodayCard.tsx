@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { MixedText } from '../../app/MixedText.tsx';
-import { taskPath } from './TodayList.tsx';
+import { taskLink } from '../deeplink/links.ts';
 import { dayLabel, usePlan } from './usePlan.ts';
 import './plan.css';
 
@@ -46,7 +46,7 @@ export function TodayCard() {
       </p>
       <div className="today-card-actions">
         {next && !summary.finished && (
-          <Link className="button today-card-next" to={next.kind === 'review' ? '/review' : taskPath(next.task)}>
+          <Link className="button today-card-next" to={next.kind === 'review' ? '/review' : taskLink(next.task)}>
             <span className="today-card-kicker">Next</span>
             <span>
               {next.kind === 'review' ? (

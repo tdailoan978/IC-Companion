@@ -1,0 +1,106 @@
+/* "Back to Today" bar: sticky at the top of the content area, under the header
+   (and under the lesson's step bar, which is also sticky in portrait and Split View). */
+
+.return-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: -12px 0 16px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+/* In a lesson the step bar sticks at the top (44px links + 2 × 8px padding + border): sit under it.
+   From 821px wide in landscape the steps are a sidebar instead (lesson.css). */
+.lesson-content .return-bar {
+  top: 61px;
+}
+
+@media (min-width: 821px) and (orientation: landscape) {
+  .lesson-content .return-bar {
+    top: 0;
+  }
+}
+
+.return-bar-back,
+.return-bar-next-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: var(--accent-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.return-bar-back {
+  margin-left: -10px;
+  flex: none;
+}
+
+.return-bar-back:active,
+.return-bar-next-link:active {
+  background: var(--accent-soft);
+}
+
+.return-bar-next {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.return-bar-next:empty {
+  display: none;
+}
+
+.return-bar-next-link {
+  min-width: 0;
+  max-width: 100%;
+  margin-right: -10px;
+  background: var(--accent-soft);
+}
+
+.return-bar-kicker {
+  flex: none;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.return-bar-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.return-bar-done {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ring-value);
+  font-weight: 600;
+}
+
+/* Narrow (Split View): one line, "‹ Today" and the next task cut short with an ellipsis. */
+@media (max-width: 480px) {
+  .return-bar {
+    flex-wrap: nowrap;
+  }
+
+  .return-bar-back-word {
+    display: none;
+  }
+
+  .return-bar-next-link {
+    margin-right: 0;
+  }
+}

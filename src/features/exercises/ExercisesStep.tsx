@@ -2,7 +2,10 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { ExerciseSet, Lesson } from '../../lib/content/types.ts';
 import { logActivity, recordExerciseAnswer, recordExerciseSet, useLessonProgress } from '../../lib/progress.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
+import { useDeepLink } from '../../lib/deeplink.ts';
 import { SpeakButton } from '../../app/SpeakButton.tsx';
+import { ReturnBar } from '../deeplink/ReturnBar.tsx';
+import { NoteButton } from '../notes/NoteButton.tsx';
 import { answerItem, currentItem, finishRun, isAnswered, isFinished, nextItem, positionLabel, score, startRun, wrongIds, type Run } from './run.ts';
 import { ChoiceItem } from './ChoiceItem.tsx';
 import { OrderItem } from './OrderItem.tsx';
@@ -48,6 +51,14 @@ export function ExercisesStep({ lesson }: { lesson: Lesson }) {
     setActive({ set, run: startRun(ids, retry), n: runCount.current });
   };
 
+  // Opened for one set (?item=L11.e2, e.g. from the study plan): start its run.
+  const { item } = useDeepLink();
+  useEffect(() => {
+    const set = lesson.exercises.find((s) => s.id === item);
+    if (set) begin(set, set.items.map((i) => i.id), false);
+    // Only when the link changes: `begin` is recreated every render.
+  }, [item, lesson]);
+
   const backToSets = () => {
     returning.current = true;
     setActive(null);
@@ -75,6 +86,7 @@ export function ExercisesStep({ lesson }: { lesson: Lesson }) {
   if (!active) {
     return (
       <article className="step exercises">
+        <ReturnBar />
         <header>
           <p className="eyebrow">Lesson {lesson.lesson}</p>
           <h1 ref={listHeadingRef} tabIndex={-1} className="ex-title">
@@ -104,14 +116,17 @@ export function ExercisesStep({ lesson }: { lesson: Lesson }) {
                     )}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className={`button ${last ? 'button-quiet' : ''}`}
-                  aria-label={`${last ? 'Do again' : 'Start'}: ${setLabel(set)}, ${set.title}`}
-                  onClick={() => begin(set, set.items.map((i) => i.id), false)}
-                >
-                  {last ? 'Do again' : 'Start'}
-                </button>
+                <div className="ex-set-actions">
+                  <NoteButton note={{ level: lesson.level, lessonId: lesson.id, kind: 'exercise', ref: set.id }} label={`Exercises ${setLabel(set)}`} />
+                  <button
+                    type="button"
+                    className={`button ${last ? 'button-quiet' : ''}`}
+                    aria-label={`${last ? 'Do again' : 'Start'}: ${setLabel(set)}, ${set.title}`}
+                    onClick={() => begin(set, set.items.map((i) => i.id), false)}
+                  >
+                    {last ? 'Do again' : 'Start'}
+                  </button>
+                </div>
               </li>
             );
           })}
@@ -125,6 +140,7 @@ export function ExercisesStep({ lesson }: { lesson: Lesson }) {
 
   return (
     <article className="step exercises">
+      <ReturnBar />
       <header className="ex-run-header">
         <button type="button" className="button button-quiet" onClick={backToSets}>
           <span aria-hidden="true">‹</span> All sets

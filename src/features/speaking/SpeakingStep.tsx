@@ -3,6 +3,7 @@ import type { Lesson } from '../../lib/content/types.ts';
 import { logActivity, markSpeakingDone, useLessonProgress } from '../../lib/progress.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
 import { SpeakButton } from '../../app/SpeakButton.tsx';
+import { ReturnBar } from '../deeplink/ReturnBar.tsx';
 import { clearSpeakingIndex, loadSpeakingIndex, restoredIndex, saveSpeakingIndex } from './savedIndex.ts';
 import './speaking.css';
 
@@ -75,6 +76,7 @@ export function SpeakingStep({ lesson }: { lesson: Lesson }) {
 
   return (
     <article className="step speaking">
+      <ReturnBar />
       <header>
         <p className="eyebrow">Lesson {lesson.lesson} · Speaking</p>
         <h1>Speaking</h1>

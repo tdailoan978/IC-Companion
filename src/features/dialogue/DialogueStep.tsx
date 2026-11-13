@@ -1,11 +1,14 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getSettings } from '../../lib/settings.ts';
 import type { Dialogue, Lesson } from '../../lib/content/types.ts';
 import { logActivity, markDialogueDone, useLessonProgress } from '../../lib/progress.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
+import { useDeepLink } from '../../lib/deeplink.ts';
 import { MixedText } from '../../app/MixedText.tsx';
 import { Sentence } from '../../app/Sentence.tsx';
 import { ToggleChip } from '../../app/ToggleChip.tsx';
+import { ReturnBar } from '../deeplink/ReturnBar.tsx';
+import { NoteButton } from '../notes/NoteButton.tsx';
 import { initialDialogueId, otherDialogue, speakerStyles } from './dialogue.ts';
 import './dialogue.css';
 
@@ -21,10 +24,23 @@ export function DialogueStep({ lesson }: { lesson: Lesson }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const { dialogues } = lesson;
+  // Opened for one dialogue (?item=L11.d1, e.g. from the study plan).
+  const { item } = useDeepLink();
+  const linked = dialogues.some((d) => d.id === item) ? item : undefined;
+  // A later link to another dialogue (the "Next" in the plan bar) selects it on this same screen.
+  const firstLink = useRef(linked);
+  useEffect(() => {
+    if (!linked || linked === firstLink.current) return;
+    firstLink.current = undefined;
+    timer.reset();
+    setChosenId(linked);
+    setJustFinished(undefined);
+  }, [linked]);
+
   if (dialogues.length === 0) return <p className="muted">This lesson has no dialogues.</p>;
 
-  // Until I pick one, open the first unread dialogue (once saved progress has loaded).
-  const currentId = chosenId ?? (loaded ? initialDialogueId(dialogues, progress.dialoguesDone) : dialogues[0].id);
+  // Until I pick one, open the linked dialogue, else the first unread one (once saved progress has loaded).
+  const currentId = chosenId ?? linked ?? (loaded ? initialDialogueId(dialogues, progress.dialoguesDone) : dialogues[0].id);
   const current = dialogues.find((d) => d.id === currentId) ?? dialogues[0];
   const index = dialogues.indexOf(current);
   const other = otherDialogue(dialogues, current.id);
@@ -52,6 +68,7 @@ export function DialogueStep({ lesson }: { lesson: Lesson }) {
 
   return (
     <div className="dialogue-step">
+      <ReturnBar />
       <h1 className="dialogue-heading">Dialogues</h1>
 
       {dialogues.length > 1 && (
@@ -89,10 +106,13 @@ export function DialogueStep({ lesson }: { lesson: Lesson }) {
       </div>
 
       <section className="dialogue" aria-labelledby="dialogue-title">
-        <h2 id="dialogue-title" className="dialogue-title" ref={headingRef} tabIndex={-1}>
-          <span className="dialogue-title-number">Dialogue {index + 1}</span>
-          <MixedText text={current.title} />
-        </h2>
+        <div className="dialogue-title-row">
+          <h2 id="dialogue-title" className="dialogue-title" ref={headingRef} tabIndex={-1}>
+            <span className="dialogue-title-number">Dialogue {index + 1}</span>
+            <MixedText text={current.title} />
+          </h2>
+          <NoteButton note={{ level: lesson.level, lessonId: lesson.id, kind: 'dialogue', ref: current.id }} label={`Dialogue ${index + 1}`} />
+        </div>
         {current.setting && (
           <p className="dialogue-setting">
             <MixedText text={current.setting} />

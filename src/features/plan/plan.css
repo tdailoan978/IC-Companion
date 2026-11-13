@@ -69,10 +69,6 @@
   overflow: hidden;
 }
 
-.plan-list-next {
-  margin-top: 12px;
-}
-
 .plan-item + .plan-item {
   border-top: 1px solid var(--border);
 }
@@ -104,26 +100,6 @@
   border-color: var(--ring-value);
   background: var(--ring-value);
   color: var(--surface);
-}
-
-.plan-tick {
-  flex: none;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-}
-
-.plan-tick[aria-pressed='false'] .plan-mark svg {
-  border-color: var(--accent-text);
-  border-style: dashed;
-}
-
-.plan-tick:active {
-  background: var(--accent-soft);
 }
 
 .plan-item-text {
@@ -171,36 +147,12 @@
   font-size: 1.15em;
 }
 
-.plan-minutes {
-  padding: 0 12px 12px 58px;
-}
-
-.plan-minutes-q {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.plan-minutes-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.plan-minutes-choice {
-  min-width: 72px;
-}
-
 .plan-done {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
   margin-top: 14px;
-}
-
-.plan-done .plan-list-next {
-  flex-basis: 100%;
 }
 
 .plan-done-title {

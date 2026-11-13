@@ -68,8 +68,21 @@
   overflow-wrap: anywhere;
 }
 
+.dialogue-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dialogue-title-row .note-button {
+  flex: none;
+  margin-top: 8px;
+}
+
 .dialogue-title {
   display: grid;
+  min-width: 0;
   margin: 8px 0 4px;
   scroll-margin-top: 80px; /* clear the sticky step bar */
 }
