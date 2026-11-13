@@ -1,0 +1,381 @@
+/* The note page and reading page (layout B: slim header, Write | Type, the note filling the
+   space, a sticky bottom toolbar). Built for half-width Split View (about 410 and 590 px). */
+
+.np {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 860px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 8px var(--gutter-right) 0 var(--gutter-left);
+}
+
+/* Full width: no max-width and no side padding; the header keeps a small gutter. */
+.np[data-full] {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.np[data-full] .np-head,
+.np[data-full] .np-seg {
+  margin-left: max(8px, env(safe-area-inset-left));
+  margin-right: max(8px, env(safe-area-inset-right));
+}
+
+.np-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.np-head-text {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.np-lesson {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.np-lesson a {
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+}
+
+.np-title {
+  margin: 0;
+  font-size: 1.15rem;
+  overflow-wrap: anywhere;
+}
+
+.np-title [lang='zh-Hans'] {
+  font-size: var(--zh-size);
+}
+
+.np-pinyin {
+  font-size: 1rem;
+}
+
+.np-small {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.np-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.np-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* Write | Type */
+.np-seg {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.np-seg button {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.np-seg button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+
+.np-body {
+  min-width: 0;
+}
+
+.np-loading,
+.np-failed p {
+  margin: 0 0 12px;
+}
+
+/* The ink area: a light paper sheet in both themes; the Pencil never selects text here. */
+.ink-area {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.np[data-full] .ink-area {
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+}
+
+.ink-canvas {
+  display: block;
+  /* Fingers scroll; the Pencil is stopped from scrolling by InkCanvas's touch listeners. */
+  touch-action: pan-x pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.ink-canvas[data-any-input] {
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.np-text {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  resize: none;
+}
+
+.np[data-full] .np-text {
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+}
+
+/* Sticky bottom toolbar */
+.np-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-top: auto;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 -2px 8px rgb(0 0 0 / 0.06);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.np[data-full] .np-bar {
+  padding-left: max(8px, env(safe-area-inset-left));
+  padding-right: max(8px, env(safe-area-inset-right));
+}
+
+.np-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.np-tool {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.np-tool-text {
+  padding: 0 12px;
+}
+
+.np-tool[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.np-tool:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.np-dot {
+  display: block;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.np-more {
+  position: relative;
+}
+
+.np-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 6;
+  display: grid;
+  min-width: 240px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.np-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.np-menu-item input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+}
+
+.np-menu-item:disabled {
+  opacity: 0.4;
+}
+
+.np-narrow-only {
+  display: none;
+}
+
+/* Narrowest Split View: Clear moves into the ⋯ menu so the pen tools fit on one line. */
+@media (max-width: 360px) {
+  .np-wide-only {
+    display: none;
+  }
+
+  .np-narrow-only {
+    display: flex;
+  }
+
+  .np-menu {
+    min-width: 220px;
+  }
+}
+
+/* Reading: timer, Done, the done state and the time confirm. */
+.np-reading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 10px;
+  margin-left: auto;
+}
+
+.np-timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.np-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ring-value);
+  font-weight: 600;
+}
+
+.np-link {
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-text);
+  font-weight: 400;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.np-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  flex-basis: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.np-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.np-stepper .np-tool {
+  font-size: 1.3rem;
+}
+
+.np-minutes {
+  min-width: 4.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.np-confirm-actions {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+@media print {
+  .np-seg,
+  .np-bar,
+  .np-head-actions {
+    display: none !important;
+  }
+
+  .np {
+    max-width: none;
+    padding: 0;
+  }
+}
