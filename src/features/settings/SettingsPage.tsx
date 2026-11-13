@@ -83,6 +83,9 @@ export function SettingsPage() {
 
       <BackupSettings refreshKey={`${theme}|${JSON.stringify(settings)}`} />
 
+      {/* PROTOTYPE: remove */}
+      <p className="settings-pad"><Link to="/prototype/note">Prototype: reading note page</Link></p>
+
       <footer className="settings-footer">
         <BuildStamp />
       </footer>
