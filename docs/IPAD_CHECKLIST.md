@@ -18,7 +18,7 @@ Before you start: push to GitHub, wait for the "Deploy to GitHub Pages" run to g
 
 Known: tapping the status bar doesn't scroll to the top inside the app. There's no offline support yet (Milestone 6).
 
-Results:
+Results: passed (2026-11-11). The app loads at /IC-Companion/ after the relative-path fix.
 
 ## Stop A: lesson screens (milestones 3-4)
 
@@ -55,7 +55,7 @@ Study L11 from top to bottom:
 12. **Dark mode:** set Dark and glance at Vocabulary, Grammar, a dialogue and an exercise. Everything is
     readable.
 
-Results:
+Results: passed (2026-11-11). Everything worked; dark mode was then restyled as Lacquer.
 
 ## Stop B: review, settings and study plan (milestone 5 + PLAN 9.1)
 
@@ -94,4 +94,4 @@ build stamp.
 10. **Reset:** only if you're happy to start over, and only after exporting. It asks twice, then clears everything.
 11. **Rest day:** on a Saturday or Sunday, Home and the plan say it's a rest day and name the next study day.
 
-Results:
+Results: passed (2026-11-13). The owner did all the checks and has used the app for a few days with no problems.
