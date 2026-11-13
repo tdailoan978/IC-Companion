@@ -241,3 +241,9 @@ The full spec and the prototype result are in `docs/NOTES_AND_DEEP_LINKS.md`. In
 - The note page uses prototype layout B.
 - Stop for an iPad check afterwards.
 
+
+### 9.5 Future update ideas (not scheduled)
+
+- **Quick pen/eraser switch on notes** (asked 2026-11-13): Apple Pencil double-tap and squeeze can't reach a
+  web app, so instead: a two-finger tap on the ink area swaps pen and eraser, and a larger pen/eraser toggle
+  at the left end of the note toolbar.
