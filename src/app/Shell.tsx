@@ -28,6 +28,18 @@ export function Shell() {
           )}
           <div className="app-header-tools">
             <ThemeControl />
+            <Link to="/notebook" className="app-settings" aria-label="Notebook">
+              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 3.5h11.5a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 6 3.5zM8.5 3.5v17M11.5 8h4.5M11.5 11.5h4.5"
+                />
+              </svg>
+            </Link>
             <Link to="/settings" className="app-settings" aria-label="Settings">
               <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.8" />

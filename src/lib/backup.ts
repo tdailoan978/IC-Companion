@@ -1,6 +1,8 @@
 // Backup file for Export / Import in Settings (PLAN.md 5.4). Pure logic only:
 // the Settings screen reads and writes storage and handles the file itself.
 
+import { MYWORDS_KEY } from './mywords.ts';
+import { NOTE_PREFIX, parseNoteKey } from './notes.ts';
 import { isThemeChoice, type ThemeChoice } from './theme.ts';
 
 export const BACKUP_APP = 'ic-companion';
@@ -43,6 +45,24 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isDayString = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
 const isTime = (v: unknown) => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 const mapOf = (v: unknown, ok: (x: unknown) => boolean) => isRecord(v) && Object.values(v).every(ok);
+const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
+
+/** Ink as vector strokes (ink.ts): { strokes: [{ points: [{ x, y, p, t }], width }], height }. */
+const isPoint = (pt: unknown) => isRecord(pt) && isNum(pt.x) && isNum(pt.y) && isNum(pt.p) && isNum(pt.t);
+const isStroke = (s: unknown) => isRecord(s) && Array.isArray(s.points) && s.points.every(isPoint) && isNum(s.width);
+const isInk = (ink: unknown) =>
+  isRecord(ink) && Array.isArray(ink.strokes) && ink.strokes.every(isStroke) && isNum(ink.height) && (!('width' in ink) || isNum(ink.width));
+
+/** One of my words (mywords.ts), keyed by its "my." id. */
+const isMyWord = (w: unknown) =>
+  isRecord(w) &&
+  typeof w.id === 'string' &&
+  w.id.startsWith('my.') &&
+  typeof w.zh === 'string' &&
+  typeof w.pinyin === 'string' &&
+  typeof w.en === 'string' &&
+  isNum(w.level) &&
+  typeof w.lessonId === 'string';
 
 /** Checks the shape of the values the app reads, so a damaged file cannot break a screen after import. */
 function valueProblem(key: string, value: unknown): string | null {
@@ -71,6 +91,16 @@ function valueProblem(key: string, value: unknown): string | null {
     return mapOf(value, (t) => isRecord(t) && isTime(t.at) && typeof t.minutes === 'number') ? null : 'book-reading ticks are not in the expected form';
   }
   if (key === 'activity.log') return Array.isArray(value) ? null : 'activity log is not a list';
+  if (key.startsWith(NOTE_PREFIX)) {
+    if (!parseNoteKey(key)) return `note "${key}" has a damaged name`;
+    if (!isRecord(value) || !isInk(value.ink) || typeof value.text !== 'string') return `note "${key}" is not in the expected form`;
+    return null;
+  }
+  if (key === MYWORDS_KEY) {
+    return isRecord(value) && Object.entries(value).every(([id, w]) => isMyWord(w) && (w as { id: string }).id === id)
+      ? null
+      : 'own words ("My words") are not in the expected form';
+  }
   return null;
 }
 

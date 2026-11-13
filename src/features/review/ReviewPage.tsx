@@ -1,32 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { findLesson } from '../../lib/content/lessons.ts';
-import type { Lesson, VocabItem } from '../../lib/content/types.ts';
 import { todayDay, type Day } from '../../lib/days.ts';
+import { loadMyWords, useMyWords, type MyWord } from '../../lib/mywords.ts';
 import { logActivity } from '../../lib/progress.ts';
 import { cardKey, dueToday, gradeCard, loadReviewCards, updateReviewCards, useReviewCards, type ReviewCard, type ReviewCards } from '../../lib/review.ts';
 import { ensureReviewSynced } from '../../lib/reviewSync.ts';
 import { getSettings, loadSettings, useSettings } from '../../lib/settings.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
 import { ReviewCardView } from './ReviewCardView.tsx';
-import { answerCard, currentKey, describeDay, isSessionDone, nextReview, sessionCounts, splitLessonKey, startSession, type Session } from './session.ts';
+import { findReviewWord } from './reviewWord.ts';
+import { answerCard, currentKey, describeDay, isSessionDone, nextReview, sessionCounts, startSession, type Session } from './session.ts';
 import '../vocab/vocab.css';
 import './review.css';
 
-type Found = { word: VocabItem; lesson: Lesson };
+type MyWords = Record<string, MyWord>;
 
-/** The word and lesson behind a card, or null if the content no longer has it. */
-function findWord(card: ReviewCard): Found | null {
-  const key = splitLessonKey(card.lesson);
-  const lesson = key && findLesson(key.level, key.id);
-  const word = lesson?.vocab.find((v) => v.id === card.id);
-  return lesson && word ? { word, lesson } : null;
-}
+/** Due cards whose word still exists: lesson words in the content, my own words in `mywords`. */
+const playable = (cards: ReviewCards, today: Day, mine: MyWords) => dueToday(cards, today, getSettings()).filter((c: ReviewCard) => findReviewWord(c, mine));
 
-const playable = (cards: ReviewCards, today: Day) => dueToday(cards, today, getSettings()).filter((c) => findWord(c));
-
-/** Today's session, fixed at the start: due cards whose word is still in the content. */
-const sessionFor = (cards: ReviewCards, today: Day): Session => startSession(playable(cards, today).map((c) => cardKey(c.lesson, c.id)));
+/** Today's session, fixed at the start. Own cards share the schedule and the daily new-card limit. */
+const sessionFor = (cards: ReviewCards, today: Day, mine: MyWords): Session =>
+  startSession(playable(cards, today, mine).map((c) => cardKey(c.lesson, c.id)));
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -44,6 +38,7 @@ function NextReview({ cards, today }: { cards: ReviewCards; today: Day }) {
 /** Vocabulary review (PLAN.md 5.3): today's due cards, one at a time; every answer is saved at once. */
 export function ReviewPage() {
   const { cards } = useReviewCards();
+  const { words: mine } = useMyWords();
   useSettings(); // re-render when settings load or change
   const timer = useActiveTimer();
   const [today] = useState(todayDay);
@@ -60,11 +55,16 @@ export function ReviewPage() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([ensureReviewSynced(), loadSettings()])
-      .then(() => loadReviewCards())
+    // If my words cannot be read, their cards are left out today (never lost).
+    const myWords = loadMyWords().catch((err): MyWords => {
+      console.warn('Could not load my words', err);
+      return {};
+    });
+    Promise.all([ensureReviewSynced(), loadSettings(), myWords])
+      .then(([, , words]) => loadReviewCards().then((saved) => ({ saved, words })))
       .then(
-        (saved) => {
-          if (!cancelled && !sessionRef.current) begin(sessionFor(saved, today));
+        ({ saved, words }) => {
+          if (!cancelled && !sessionRef.current) begin(sessionFor(saved, today, words));
         },
         (err) => {
           console.warn('Could not load review cards', err);
@@ -151,7 +151,7 @@ export function ReviewPage() {
   // ---- finished ----
   if (done) {
     const counts = sessionCounts(session);
-    const moreToday = playable(cards, today).length;
+    const moreToday = playable(cards, today, mine).length;
     return (
       <div className="page review">
         {header}
@@ -173,7 +173,7 @@ export function ReviewPage() {
           {moreToday > 0 ? <p>{plural(moreToday, 'more card is', 'more cards are')} due today.</p> : <NextReview cards={cards} today={today} />}
           <div className="review-panel-actions">
             {moreToday > 0 && (
-              <button type="button" className="button" onClick={() => begin(sessionFor(cards, today))}>
+              <button type="button" className="button" onClick={() => begin(sessionFor(cards, today, mine))}>
                 Keep going
               </button>
             )}
@@ -189,7 +189,7 @@ export function ReviewPage() {
   // ---- a card ----
   const key = currentKey(session)!;
   const card = cards[key];
-  const found = card ? findWord(card) : null;
+  const found = card ? findReviewWord(card, mine) : null;
   const counts = sessionCounts(session);
 
   return (
@@ -215,7 +215,7 @@ export function ReviewPage() {
           <span style={{ width: `${counts.progress * 100}%` }} />
         </div>
         {found ? (
-          <ReviewCardView key={`${key}-${session.answers}`} word={found.word} lesson={found.lesson} onAnswer={answer} />
+          <ReviewCardView key={`${key}-${session.answers}`} word={found} onAnswer={answer} />
         ) : (
           <div className="review-panel">
             <p>This card is no longer in your review.</p>

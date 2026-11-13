@@ -114,3 +114,64 @@ describe('value checks on import', () => {
   });
 });
 
+
+describe('note and own-word checks on import', () => {
+  const file = (entries: unknown[]) => JSON.stringify({ app: 'ic-companion', version: 1, exportedAt: '2026-11-11T10:00:00.000Z', entries });
+  const at = '2026-11-13T09:00:00.000Z';
+  const ink = { strokes: [{ points: [{ x: 1, y: 2, p: 0.5, t: 0 }, { x: 3.5, y: 4, p: 0.6, t: 16 }], width: 3 }, { points: [{ x: 2, y: 2, p: 0, t: 0 }], width: 3, erase: true }], height: 600, width: 410 };
+  const note = { level: 2, lessonId: 'L11', kind: 'grammar', ref: 'L11.g.3', ink, text: '比 + noun', created: at, edited: at };
+  const word = { id: 'my.1', zh: '雪人', pinyin: 'xuěrén', en: 'snowman', level: 2, lessonId: 'L11', noteKey: 'note.2/L11|grammar|L11.g.3', created: at };
+  const error = (entries: unknown[]) => {
+    const r = parseBackup(file(entries));
+    return r.ok ? null : r.error;
+  };
+
+  it('accepts well-formed notes and own words', () => {
+    expect(
+      error([
+        ['note.2/L11|grammar|L11.g.3', note],
+        ['note.2/L11|book|Part 1 text', { ...note, kind: 'book', ref: 'Part 1 text', ink: { strokes: [], height: 600 } }],
+        ['mywords', { 'my.1': word }],
+        ['mywords.unrelated', 'kept as is'],
+      ]),
+    ).toBeNull();
+    expect(error([['mywords', {}]])).toBeNull();
+  });
+
+  it('rejects a note with a damaged key', () => {
+    expect(error([['note.2/L11|poem|x', note]])).toMatch(/note "note.2\/L11\|poem\|x" has a damaged name/);
+    expect(error([['note.L11', note]])).toMatch(/damaged name/);
+  });
+
+  it('rejects damaged note values', () => {
+    const damaged = [
+      null,
+      'text',
+      { ...note, text: 3 },
+      { ...note, ink: undefined },
+      { ...note, ink: { ...ink, height: '600' } },
+      { ...note, ink: { ...ink, strokes: {} } },
+      { ...note, ink: { ...ink, width: 'wide' } },
+      { ...note, ink: { ...ink, strokes: [{ points: [{ x: 1, y: 2, p: 0.5 }], width: 3 }] } },
+      { ...note, ink: { ...ink, strokes: [{ points: [{ x: '1', y: 2, p: 0.5, t: 0 }], width: 3 }] } },
+      { ...note, ink: { ...ink, strokes: [{ points: [], width: null }] } },
+      { ...note, ink: { ...ink, strokes: [{ width: 3 }] } },
+    ];
+    for (const value of damaged) expect(error([['note.2/L11|grammar|L11.g.3', value]])).toMatch(/note .* is not in the expected form/);
+  });
+
+  it('rejects damaged own words', () => {
+    const damaged = [
+      [],
+      { 'my.1': null },
+      { 'my.1': { ...word, id: 'L11.v.1' } },
+      { 'my.2': word },
+      { 'my.1': { ...word, zh: 1 } },
+      { 'my.1': { ...word, pinyin: undefined } },
+      { 'my.1': { ...word, en: null } },
+      { 'my.1': { ...word, level: '2' } },
+      { 'my.1': { ...word, lessonId: 11 } },
+    ];
+    for (const value of damaged) expect(error([['mywords', value]])).toMatch(/own words/);
+  });
+});

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
-import type { Lesson, VocabItem } from '../../lib/content/types.ts';
+import { Link } from 'react-router';
 import { SpeakButton } from '../../app/SpeakButton.tsx';
+import { notePath, parseNoteKey } from '../../lib/notes.ts';
+import type { ReviewWord } from './reviewWord.ts';
 import { isDrag, swipeProgress, swipeResult } from '../vocab/swipe.ts';
 
 type Answer = 'got-it' | 'again';
@@ -11,10 +13,12 @@ const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(pre
 
 /**
  * One review card: Chinese on the front; tap to flip for pinyin, English, a speak button and the
- * lesson it came from. "Again" / "Got it" by button, swipe (left / right) or arrow keys.
- * Remount it (key) for each card shown.
+ * lesson it came from (my own words: "My word", with a link to the note they came from).
+ * "Again" / "Got it" by button, swipe (left / right) or arrow keys. Remount it (key) for each card shown.
  */
-export function ReviewCardView({ word, lesson, onAnswer }: { word: VocabItem; lesson: Lesson; onAnswer: (gotIt: boolean) => void }) {
+export function ReviewCardView({ word, onAnswer }: { word: ReviewWord; onAnswer: (gotIt: boolean) => void }) {
+  const { lesson, mine } = word;
+  const fromNote = mine?.noteKey ? parseNoteKey(mine.noteKey) : null;
   const [flipped, setFlipped] = useState(false);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -38,7 +42,7 @@ export function ReviewCardView({ word, lesson, onAnswer }: { word: VocabItem; le
 
   function onPointerDown(e: PointerEvent<HTMLDivElement>) {
     if (leaving || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    if ((e.target as Element).closest('.speak-button')) return;
+    if ((e.target as Element).closest('.speak-button, .review-note-link')) return;
     press.current = { id: e.pointerId, x: e.clientX, y: e.clientY, drag: false };
     cardWidth.current = e.currentTarget.getBoundingClientRect().width;
   }
@@ -127,14 +131,20 @@ export function ReviewCardView({ word, lesson, onAnswer }: { word: VocabItem; le
               <span className="fc-back">
                 <span className="fc-pinyin pinyin">{word.pinyin}</span>
                 <span className="fc-en">
-                  <span className="fc-pos">{word.pos}</span>
+                  {word.pos && <span className="fc-pos">{word.pos}</span>}
                   {word.en}
                 </span>
                 <span className="review-source muted">
-                  Lesson {lesson.lesson} ·{' '}
-                  <span lang="zh-Hans" className="review-source-zh">
-                    {lesson.titleZh}
-                  </span>
+                  {mine && <span className="review-mine">My word</span>}
+                  {mine && lesson && ' · '}
+                  {lesson && (
+                    <>
+                      Lesson {lesson.lesson} ·{' '}
+                      <span lang="zh-Hans" className="review-source-zh">
+                        {lesson.titleZh}
+                      </span>
+                    </>
+                  )}
                 </span>
               </span>
             ) : (
@@ -145,6 +155,11 @@ export function ReviewCardView({ word, lesson, onAnswer }: { word: VocabItem; le
             <span className="fc-speak">
               <SpeakButton text={word.zh} label={`Hear ${word.zh}`} />
             </span>
+          )}
+          {flipped && fromNote && (
+            <Link to={notePath(fromNote)} className="review-note-link">
+              Open note
+            </Link>
           )}
         </div>
       </div>
