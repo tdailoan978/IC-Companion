@@ -1,3 +1,4 @@
+import { loadMyWords, ownCardsMissing, type MyWord } from './mywords.ts';
 // Brings the review queue in line with lesson progress: every vocabulary part
 // whose flashcards were finished should have its words in review (PLAN.md 5.2
 // step 2). The flashcards add cards when a part is finished; this catches parts
@@ -40,8 +41,11 @@ export async function syncReviewFromProgress(): Promise<void> {
       const p = getProgress(l);
       return p ? missingReviewCards(l, p, cards) : [];
     });
-  if (findMissing(await loadReviewCards()).length === 0) return;
-  await updateReviewCards((cards) => addMissingCards(cards, findMissing(cards)));
+  // Own words whose card failed to save are repaired too.
+  const words = await loadMyWords().catch(() => ({}) as Record<string, MyWord>);
+  const missingAll = (cards: ReviewCards) => [...findMissing(cards), ...ownCardsMissing(words, cards)];
+  if (missingAll(await loadReviewCards()).length === 0) return;
+  await updateReviewCards((cards) => addMissingCards(cards, missingAll(cards)));
 }
 
 let synced: Promise<void> | null = null;

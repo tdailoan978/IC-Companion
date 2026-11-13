@@ -16,7 +16,8 @@ import './review.css';
 type MyWords = Record<string, MyWord>;
 
 /** Due cards whose word still exists: lesson words in the content, my own words in `mywords`. */
-const playable = (cards: ReviewCards, today: Day, mine: MyWords) => dueToday(cards, today, getSettings()).filter((c: ReviewCard) => findReviewWord(c, mine));
+const playable = (cards: ReviewCards, today: Day, mine: MyWords) =>
+  dueToday(cards, today, { ...getSettings(), playable: (c: ReviewCard) => Boolean(findReviewWord(c, mine)) });
 
 /** Today's session, fixed at the start. Own cards share the schedule and the daily new-card limit. */
 const sessionFor = (cards: ReviewCards, today: Day, mine: MyWords): Session =>

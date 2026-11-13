@@ -296,10 +296,14 @@
     break-after: avoid;
   }
 
+  /* A note may break across pages between its ink slices (each slice stays whole). */
   .nb-print-note {
     margin: 0 0 14pt;
     padding-bottom: 10pt;
     border-bottom: 0.5pt solid #bbb;
+  }
+
+  .nb-print-ink {
     break-inside: avoid;
   }
 
@@ -319,7 +323,7 @@
     display: block;
     max-width: 100%;
     height: auto;
-    margin: 4pt 0 6pt;
+    margin: 0;
     background: #fff;
     border: 0.5pt solid #ccc;
   }

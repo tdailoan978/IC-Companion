@@ -49,8 +49,13 @@ export function gradeCard(card: ReviewCard, gotIt: boolean, today: Day): ReviewC
  * new cards (oldest added first) up to what is left of today's new-card
  * allowance; at most `sessionCap` in all.
  */
-export function dueToday(cards: ReviewCards, today: Day, opts: { newCardsPerDay: number; sessionCap: number }): ReviewCard[] {
-  const all = Object.values(cards).filter((c) => c.due <= today);
+export function dueToday(
+  cards: ReviewCards,
+  today: Day,
+  opts: { newCardsPerDay: number; sessionCap: number; playable?: (c: ReviewCard) => boolean },
+): ReviewCard[] {
+  // Cards that can't be shown (an own word that was deleted or can't be read) never take a slot.
+  const all = Object.values(cards).filter((c) => c.due <= today && (!opts.playable || opts.playable(c)));
   const byDue = (a: ReviewCard, b: ReviewCard) => a.due.localeCompare(b.due) || a.added.localeCompare(b.added) || a.id.localeCompare(b.id);
   const seen = all.filter((c) => c.firstReviewed).sort(byDue);
   const introducedToday = Object.values(cards).filter((c) => c.firstReviewed === today && c.added !== today).length;
@@ -88,20 +93,20 @@ export function loadReviewCards(): Promise<ReviewCards> {
   return loading;
 }
 
-/** Applies a change to all cards and saves it. Skips the write if the saved cards could not be read. */
-export async function updateReviewCards(change: (cards: ReviewCards) => ReviewCards): Promise<void> {
+/** Applies a change to all cards and saves it; true if saved. Skips the write if the saved cards could not be read. */
+export async function updateReviewCards(change: (cards: ReviewCards) => ReviewCards): Promise<boolean> {
   let cards: ReviewCards;
   try {
     cards = await loadReviewCards();
   } catch (err) {
     console.warn('Could not load review cards', err);
     setSaveFailed(true);
-    return;
+    return false;
   }
   // Two updates can wait on the same load; each must build on the other's result.
   cache = change(cache ?? cards);
   notify();
-  await write(KEY, cache);
+  return write(KEY, cache);
 }
 
 export function useReviewCards(): { cards: ReviewCards; loaded: boolean } {

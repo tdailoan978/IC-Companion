@@ -51,14 +51,24 @@ export function InkCanvas({ ink, width, maxHeight, className }: { ink: Ink; widt
 }
 
 /** The ink as a PNG data URL at `ratio`× its size (2× prints sharply), with its CSS size. */
-export function inkDataUrl(ink: Ink, ratio = 2): { src: string; width: number; height: number } | null {
+/** Height of one printed ink slice in CSS px: an image can't break across pages, so tall ink is cut. */
+export const PRINT_SLICE_HEIGHT = 900;
+
+/** The ink as PNG data URLs, one per slice of at most `sliceHeight` CSS px, top to bottom. */
+export function inkDataUrls(ink: Ink, ratio = 2, sliceHeight = PRINT_SLICE_HEIGHT): { src: string; width: number; height: number }[] {
   const { width, height } = inkExtent(ink);
-  const r = safeRatio(width, height, ratio);
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(width * r);
-  canvas.height = Math.round(height * r);
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-  drawInk(ctx, ink, r);
-  return { src: canvas.toDataURL('image/png'), width, height };
+  const out: { src: string; width: number; height: number }[] = [];
+  for (let top = 0; top < height; top += sliceHeight) {
+    const h = Math.min(sliceHeight, height - top);
+    const r = safeRatio(width, h, ratio);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(width * r);
+    canvas.height = Math.round(h * r);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) break;
+    ctx.translate(0, -top * r);
+    drawInk(ctx, ink, r);
+    out.push({ src: canvas.toDataURL('image/png'), width, height: h });
+  }
+  return out;
 }

@@ -55,7 +55,14 @@ export function NoteEditor({ noteRef, entry, reading }: { noteRef: NoteRef; entr
   const ink: Ink = note?.ink ?? EMPTY_INK;
   const text = note?.text ?? '';
 
-  const [mode, setMode] = useState<Mode>(() => (note && !hasInk(note.ink) && note.text.trim() !== '' ? 'type' : 'write'));
+  const [mode, setMode] = useState<Mode>('write');
+  // A note with only typed text opens on Type; decided once, when the saved note has loaded.
+  const modeChosen = useRef(false);
+  useEffect(() => {
+    if (modeChosen.current || !entry.loaded) return;
+    modeChosen.current = true;
+    if (note && !hasInk(note.ink) && note.text.trim() !== '') setMode('type');
+  }, [entry.loaded, note]);
   const [tool, setToolState] = useState<InkTool>(lastTool);
   const [anyInput, setAnyInputState] = useState(anyInputSession);
   const [menuOpen, setMenuOpen] = useState(false);

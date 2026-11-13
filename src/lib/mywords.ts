@@ -6,7 +6,7 @@
 import { useSyncExternalStore } from 'react';
 import { addCards, cardKey, updateReviewCards } from './review.ts';
 import { readStrict, setSaveFailed, write } from './storage.ts';
-import type { Day } from './days.ts';
+import { toDay, type Day } from './days.ts';
 
 export type MyWord = {
   /** "my.<random>"; also the review card id. */
@@ -70,6 +70,8 @@ async function change(fn: (words: Record<string, MyWord>) => Record<string, MyWo
 export async function addMyWord(word: Omit<MyWord, 'id' | 'created'>, today: Day): Promise<MyWord | null> {
   const w: MyWord = { ...word, id: newMyWordId(), created: new Date().toISOString() };
   if (!(await change((all) => ({ ...all, [w.id]: w })))) return null;
+  // The word is saved. If its card can't be saved now, the start-up review sync adds it later
+  // (ownCardsMissing), so this still counts as added (retrying would make a duplicate word).
   await updateReviewCards((cards) => addCards(cards, `${w.level}/${w.lessonId}`, [w.id], today));
   return w;
 }
@@ -80,12 +82,12 @@ export const updateMyWord = (id: string, patch: Partial<Pick<MyWord, 'zh' | 'pin
 /** Deletes a word and its review card. */
 export async function deleteMyWord(id: string): Promise<void> {
   const w = cache?.[id] ?? (await loadMyWords().catch(() => EMPTY))[id];
-  await change((all) => {
+  const removed = await change((all) => {
     const next = { ...all };
     delete next[id];
     return next;
   });
-  if (w) {
+  if (removed && w) {
     await updateReviewCards((cards) => {
       const next = { ...cards };
       delete next[cardKey(`${w.level}/${w.lessonId}`, id)];
@@ -93,6 +95,17 @@ export async function deleteMyWord(id: string): Promise<void> {
     });
   }
 }
+
+/** Own words that have no review card yet (a card write failed): learned on the day they were added. */
+export function ownCardsMissing(words: Record<string, MyWord>, cards: Record<string, unknown>): { lesson: string; ids: string[]; learnedOn: Day }[] {
+  return Object.values(words)
+    .filter((w) => !cards[cardKey(`${w.level}/${w.lessonId}`, w.id)])
+    .map((w) => ({ lesson: `${w.level}/${w.lessonId}`, ids: [w.id], learnedOn: toDay(new Date(w.created)) }));
+}
+
+/** Whether a card can be shown: lesson words always, own words only while the word exists. */
+export const playableWith = (words: Record<string, MyWord>, loaded: boolean) => (c: { id: string }) =>
+  !isMyWordId(c.id) || (loaded && Boolean(words[c.id]));
 
 export function useMyWords(): { words: Record<string, MyWord>; loaded: boolean } {
   const words = useSyncExternalStore(subscribe, () => cache ?? EMPTY);

@@ -72,17 +72,24 @@ const subscribe = (l: () => void) => {
 /** Known note keys (cheap index for "has a note" marks and the Notebook). */
 let keyIndex: Set<string> | null = null;
 let keyIndexLoading: Promise<void> | null = null;
+// Writes and deletes made this session, applied over the index when it loads (it may load mid-write).
+const writtenKeys = new Set<string>();
+const removedKeys = new Set<string>();
 
+/** Loads the note key index. Throws (and stays unloaded, to retry) if storage cannot be read. */
 export function loadNoteKeys(): Promise<void> {
   if (keyIndex) return Promise.resolve();
   keyIndexLoading ??= allKeys().then(
     (ks) => {
-      keyIndex = new Set(ks.filter((k) => k.startsWith(NOTE_PREFIX)));
+      const set = new Set(ks.filter((k) => k.startsWith(NOTE_PREFIX)));
+      writtenKeys.forEach((k) => set.add(k));
+      removedKeys.forEach((k) => set.delete(k));
+      keyIndex = set;
       notify();
     },
     (err) => {
       keyIndexLoading = null;
-      console.warn('Could not list notes', err);
+      throw err;
     },
   );
   return keyIndexLoading;
@@ -101,11 +108,11 @@ export function loadNote(r: NoteRef): Promise<void> {
         notify();
       },
       (err) => {
-        console.warn('Could not load note', err);
         entries.set(key, { note: null, loaded: false, failed: true });
         loading.delete(key);
         setSaveFailed(true);
         notify();
+        throw err;
       },
     );
     loading.set(key, p);
@@ -117,15 +124,18 @@ async function persist(key: string): Promise<void> {
   const e = entries.get(key);
   if (!e?.loaded) return;
   if (!e.note || isEmptyNote(e.note)) {
-    // An emptied note is removed rather than kept as an empty record.
-    if (keyIndex?.has(key)) {
-      await remove(key);
-      keyIndex.delete(key);
+    // An emptied note is removed rather than kept as an empty record (deleting a missing key is harmless).
+    if (await remove(key)) {
+      writtenKeys.delete(key);
+      removedKeys.add(key);
+      keyIndex?.delete(key);
       notify();
     }
     return;
   }
   if (await write(key, e.note)) {
+    writtenKeys.add(key);
+    removedKeys.delete(key);
     if (keyIndex && !keyIndex.has(key)) {
       keyIndex.add(key);
       notify();
@@ -179,7 +189,7 @@ if (typeof document !== 'undefined') {
 export function useNote(r: NoteRef): Entry {
   const key = noteKey(r);
   const entry = useSyncExternalStore(subscribe, () => entries.get(key) ?? NOT_LOADED);
-  if (!entry.loaded && !entry.failed) void loadNote(r);
+  if (!entry.loaded && !entry.failed) loadNote(r).catch((err) => console.warn('Could not load note', err));
   return entry;
 }
 
@@ -187,7 +197,7 @@ export function useNote(r: NoteRef): Entry {
 export function useHasNote(r: NoteRef): boolean {
   const key = noteKey(r);
   const has = useSyncExternalStore(subscribe, () => keyIndex?.has(key) ?? false);
-  if (!keyIndex) void loadNoteKeys();
+  if (!keyIndex) loadNoteKeys().catch((err) => console.warn('Could not list notes', err));
   return has;
 }
 
@@ -199,7 +209,7 @@ export async function listNotes(): Promise<Note[]> {
   for (const key of keys) {
     const r = parseNoteKey(key);
     if (!r) continue;
-    await loadNote(r);
+    await loadNote(r); // throws if this note cannot be read, so the Notebook shows its failed state
     const n = entries.get(key)?.note;
     if (n && !isEmptyNote(n)) out.push(n);
   }

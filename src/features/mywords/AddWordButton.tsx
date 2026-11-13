@@ -72,7 +72,15 @@ export function AddWordButton({ note }: { note: NoteRef }) {
     if (found.en) return enRef.current?.focus();
     setSaving(true);
     setSaveError(false);
-    const word = trimWord(draft);
+    let word = trimWord(draft);
+    // Saved before the automatic pinyin arrived: fill it in now rather than store none or a stale one.
+    if (!pinyinEdited.current) {
+      try {
+        word = { ...word, pinyin: await pinyinFor(word.zh) };
+      } catch (err) {
+        console.warn('Could not fill in pinyin', err);
+      }
+    }
     const saved = await addMyWord({ ...word, level: note.level, lessonId: note.lessonId, noteKey: noteKey(note) }, todayDay());
     setSaving(false);
     if (!saved) {

@@ -7,6 +7,7 @@ import { lessonKey, type Lesson } from '../../lib/content/types.ts';
 import { addDays, todayDay, type Day } from '../../lib/days.ts';
 import { useLessonProgress, type LessonProgress } from '../../lib/progress.ts';
 import { dueToday, useReviewCards } from '../../lib/review.ts';
+import { playableWith, useMyWords } from '../../lib/mywords.ts';
 import { useSettings, useSettingsLoaded, type Settings } from '../../lib/settings.ts';
 import { doneDays } from '../../lib/plan/done.ts';
 import { estimatesFrom, futureReviewMinutes, reviewMinutesOn, type Estimates } from '../../lib/plan/estimates.ts';
@@ -86,6 +87,7 @@ export function usePlan(): PlanModel {
   const settings = useSettings();
   const today = useToday();
   const { cards, loaded: cardsLoaded } = useReviewCards();
+  const { words: myWords, loaded: myWordsLoaded } = useMyWords();
   const { ticks, loaded: bookLoaded } = useBookTicks();
   const { log, loaded: logLoaded } = useActivityLog();
   const { byKey, loaded: progressLoaded } = useAllProgress();
@@ -94,7 +96,11 @@ export function usePlan(): PlanModel {
     const progressOf = (key: string) => byKey.get(key);
     const done = doneDays(TASKS, progressOf, ticks);
     const estimates = estimatesFrom(log);
-    const reviewDue = dueToday(cards, today, { newCardsPerDay: settings.newCardsPerDay, sessionCap: settings.sessionCap }).length;
+    const reviewDue = dueToday(cards, today, {
+      newCardsPerDay: settings.newCardsPerDay,
+      sessionCap: settings.sessionCap,
+      playable: playableWith(myWords, myWordsLoaded),
+    }).length;
     const futureReviewMin = futureReviewMinutes(log, today, settings.dailyCapMin);
     const schedule = buildSchedule({
       tasks: TASKS,
@@ -133,7 +139,7 @@ export function usePlan(): PlanModel {
       futureReviewMin,
       progressOf,
     };
-  }, [settingsReady, settings, today, cards, cardsLoaded, ticks, bookLoaded, log, logLoaded, byKey, progressLoaded]);
+  }, [settingsReady, settings, today, cards, cardsLoaded, myWords, myWordsLoaded, ticks, bookLoaded, log, logLoaded, byKey, progressLoaded]);
 }
 
 // ---- formatting ----

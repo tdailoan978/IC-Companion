@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Link } from 'react-router';
 import { MixedText } from '../../app/MixedText.tsx';
 import { hasInk } from '../../lib/ink.ts';
@@ -124,7 +125,12 @@ export function NotebookPage() {
   const searching = query.trim() !== '';
 
   // A fresh print view each time (keyed), in case the last one stayed because afterprint never came.
-  const print = (title: string, chosen: LessonGroup[]) => setPrinting((p) => ({ title, groups: chosen, n: (p?.n ?? 0) + 1 }));
+  // Render the print view synchronously, then print inside the same tap: iPadOS may block a
+  // print started later. Printing from the Home Screen app is the thing to test on the iPad.
+  const print = (title: string, chosen: LessonGroup[]) => {
+    flushSync(() => setPrinting((p) => ({ title, groups: chosen, n: (p?.n ?? 0) + 1 })));
+    window.print();
+  };
 
   const header = (
     <header className="nb-header">

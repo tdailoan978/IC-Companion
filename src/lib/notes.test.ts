@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createDebouncer, isEmptyNote, newNote, noteKey, notePath, parseNoteKey, type NoteRef } from './notes.ts';
+import { createDebouncer, isEmptyNote, listNotes, loadNote, newNote, noteKey, notePath, parseNoteKey, updateNote, type NoteRef } from './notes.ts';
 import { compactStroke, emptyInk } from './ink.ts';
 
 const ref: NoteRef = { level: 2, lessonId: 'L11', kind: 'book', ref: 'Part 1 text' };
@@ -49,3 +49,14 @@ describe('ink storage', () => {
     expect(JSON.parse(JSON.stringify(s))).toEqual(s);
   });
 });
+
+describe('failed reads (no storage here, like a broken IndexedDB)', () => {
+  it('marks the note failed, refuses every change, and never writes', async () => {
+    await expect(loadNote(ref)).rejects.toBeTruthy();
+    expect(updateNote(ref, (n) => ({ ...n, text: 'would overwrite the real note' }))).toBe(false);
+  });
+  it('makes the Notebook fail instead of showing an empty list', async () => {
+    await expect(listNotes()).rejects.toBeTruthy();
+  });
+});
+

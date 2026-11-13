@@ -1,13 +1,16 @@
 import { Link } from 'react-router';
 import { notePath, useHasNote, type NoteRef } from '../../lib/notes.ts';
+import { useDeepLink, withDeepLink } from '../../lib/deeplink.ts';
 import './note-button.css';
 
 /** "Note" button for an item: opens its note; shows a mark when the item already has one. */
 export function NoteButton({ note, label = 'Note', compact = false }: { note: NoteRef; label?: string; compact?: boolean }) {
   const has = useHasNote(note);
+  // Opened from a plan item: keep the plan context so the note page shows Back to Today too.
+  const { fromPlan, task } = useDeepLink();
   return (
     <Link
-      to={notePath(note)}
+      to={withDeepLink(notePath(note), { fromPlan, task })}
       className={`note-button${compact ? ' note-button-compact' : ''}`}
       data-has={has || undefined}
       aria-label={`${has ? 'Open note' : 'Add a note'}: ${label}`}

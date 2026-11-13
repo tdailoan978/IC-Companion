@@ -38,9 +38,11 @@ type Props = {
 
 type Active = { stroke: InkStroke; pointerId: number; rect: DOMRect; pen: boolean };
 
+// Clamped to the ink area: with pointer capture a stroke can leave it, which would widen the canvas.
+const clamp = (v: number, max: number) => Math.min(Math.max(v, 0), max);
 const pointOf = (e: PointerEvent, rect: DOMRect, pen: boolean): InkPoint => ({
-  x: e.clientX - rect.left,
-  y: e.clientY - rect.top,
+  x: clamp(e.clientX - rect.left, rect.width),
+  y: clamp(e.clientY - rect.top, rect.height),
   p: pen ? e.pressure || 0.5 : 0.5,
   t: e.timeStamp,
 });

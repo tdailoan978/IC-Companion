@@ -56,7 +56,8 @@ async function changeBook(change: (b: BookTicks) => BookTicks): Promise<void> {
 
 /** Ticks a book-reading task and logs how long it took (minutes per page feed the estimate). */
 export async function tickBook(task: PlanTask, minutes: number, lesson: Pick<Lesson, 'level' | 'id'>): Promise<void> {
-  await changeBook((b) => ({ ...b, [task.id]: { at: new Date().toISOString(), minutes } }));
+  // A repeat keeps the first finish day (the plan places the task on it); minutes are the latest.
+  await changeBook((b) => ({ ...b, [task.id]: { at: b[task.id]?.at ?? new Date().toISOString(), minutes } }));
   await logActivity(lesson, 'book', task.id, minutes * 60_000, task.units);
   bumpActivity();
 }
