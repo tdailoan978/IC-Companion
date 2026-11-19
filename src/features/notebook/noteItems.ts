@@ -21,7 +21,9 @@ export function itemLabel(ref: NoteRef, lesson: Lesson | undefined): ItemLabel {
     }
     case 'grammar': {
       const i = lesson.grammar.findIndex((g) => g.id === ref.ref);
-      return i < 0 ? { text: ref.ref } : { text: `G${i + 1} · ${lesson.grammar[i].title}` };
+      if (i >= 0) return { text: `G${i + 1} · ${lesson.grammar[i].title}` };
+      const w = lesson.wordsPhrases.findIndex((x) => x.id === ref.ref);
+      return w < 0 ? { text: ref.ref } : { text: `W${w + 1} · ${lesson.wordsPhrases[w].word} (${lesson.wordsPhrases[w].gloss})` };
     }
     case 'dialogue': {
       const i = lesson.dialogues.findIndex((d) => d.id === ref.ref);

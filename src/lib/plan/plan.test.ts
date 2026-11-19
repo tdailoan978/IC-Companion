@@ -505,3 +505,43 @@ describe('today summary', () => {
     expect(daySummary(finished.days[0], DEFAULTS, finished.next)).toMatchObject({ total: 4, done: 4, leftMin: 0, finished: true, next: { kind: 'task', task: tasks[3] } });
   });
 });
+
+describe('Level 3-4 task sequence', () => {
+  const L3_1 = allLessons.find((l) => l.level === 3 && l.id === 'L1')!;
+  const tasks = lessonTasks(L3_1);
+  const kinds = tasks.map((t) => (t.kind === 'book' ? `book:${t.section}` : t.kind === 'grammar' && t.ref?.includes('.w.') ? 'wp' : t.kind));
+
+  it('reads the book in study order, with Words & Phrases after grammar', () => {
+    const order = (k: string) => kinds.indexOf(k);
+    expect(order('book:Text')).toBe(0);
+    expect(order('book:Text')).toBeLessThan(order('book:Vocabulary'));
+    expect(order('book:Vocabulary')).toBeLessThan(order('words'));
+    expect(order('words')).toBeLessThan(order('book:Grammar'));
+    expect(order('book:Grammar')).toBeLessThan(order('grammar'));
+    expect(kinds.lastIndexOf('grammar')).toBeLessThan(order('book:Words & Phrases'));
+    expect(order('book:Words & Phrases')).toBeLessThan(order('wp'));
+    expect(kinds.lastIndexOf('wp')).toBeLessThan(order('dialogue'));
+    expect(kinds.lastIndexOf('dialogue')).toBeLessThan(order('book:Language Practice'));
+    expect(order('book:Language Practice')).toBeLessThan(order('exercise'));
+  });
+
+  it('has one task per Words & Phrases entry and word slices without "Part"', () => {
+    expect(tasks.filter((t) => t.ref?.includes('.w.')).map((t) => t.ref)).toEqual(L3_1.wordsPhrases.map((w) => w.id));
+    const words = tasks.filter((t) => t.kind === 'words');
+    expect(words.flatMap((t) => t.wordIds)).toEqual(L3_1.vocab.map((v) => v.id));
+    expect(words.every((t) => t.part === 1 && !t.label.includes('Part'))).toBe(true);
+  });
+
+  it('keeps the other book sections, in page order, before the exercises', () => {
+    const extra = tasks.filter((t) => t.kind === 'book' && !['Text', 'Vocabulary', 'Grammar', 'Words & Phrases', 'Language Practice'].includes(t.section!));
+    expect(extra.map((t) => t.section)).toContain('Pinyin Text');
+  });
+
+  it('marks a Words & Phrases task done from the grammar "Got it" record', () => {
+    const wp = tasks.find((t) => t.ref === L3_1.wordsPhrases[0].id)!;
+    const p = emptyProgress();
+    expect(taskDoneAt(wp, p, {})).toBeUndefined();
+    p.grammarDone[wp.ref!] = '2026-11-16T10:00:00.000Z';
+    expect(taskDoneAt(wp, p, {})).toBe('2026-11-16T10:00:00.000Z');
+  });
+});

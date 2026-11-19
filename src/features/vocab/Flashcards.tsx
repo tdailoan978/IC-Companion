@@ -250,7 +250,8 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     return (
       <section className="fc-finished" aria-labelledby="fc-finished-heading">
         <h2 id="fc-finished-heading" ref={finishedHeading} tabIndex={-1}>
-          <span aria-hidden="true">✓ </span>Part {part} done
+          <span aria-hidden="true">✓ </span>
+          {lesson.vocab.some((v) => v.part === 2) ? `Part ${part} done` : 'All words done'}
         </h2>
         <p>These words join your review from tomorrow.</p>
         <p className="muted">
@@ -273,7 +274,7 @@ export function Flashcards({ lesson, part, words, reverse, onReverse, shuffle, o
     );
   }
 
-  const runLabel = slice ? `${slice.label} flashcards` : `Part ${part} flashcards`;
+  const runLabel = slice ? `${slice.label} flashcards` : lesson.vocab.some((v) => v.part === 2) ? `Part ${part} flashcards` : 'Flashcards';
   if (!ready) return <section className="flashcards" aria-busy="true" aria-label={runLabel} />;
   if (!card) return null;
 

@@ -74,7 +74,13 @@ export function resolveSlice(lesson: Lesson, item: string | undefined): WordSlic
     part: parsed.part,
     slice: parsed.slice,
     wordIds: task.wordIds,
-    label: range ? `Part ${parsed.part}, words ${range[1]}–${range[2]}` : `Part ${parsed.part}, slice ${parsed.slice}`,
+    label: lesson.vocab.every((v) => v.part === 1)
+      ? range
+        ? `Words ${range[1]}–${range[2]}`
+        : `Slice ${parsed.slice}`
+      : range
+        ? `Part ${parsed.part}, words ${range[1]}–${range[2]}`
+        : `Part ${parsed.part}, slice ${parsed.slice}`,
   };
 }
 

@@ -37,7 +37,10 @@ export function noteItemLabel(lesson: Lesson, kind: NoteKind, ref: string): Item
     }
     case 'grammar': {
       const i = lesson.grammar.findIndex((g) => g.id === ref);
-      return i < 0 ? missing : { text: `G${i + 1} · ${lesson.grammar[i].title}`, found: true };
+      if (i >= 0) return { text: `G${i + 1} · ${lesson.grammar[i].title}`, found: true };
+      // Words & Phrases entries share the grammar kind (and step).
+      const w = lesson.wordsPhrases.findIndex((x) => x.id === ref);
+      return w < 0 ? missing : { text: `W${w + 1} · ${lesson.wordsPhrases[w].word} (${lesson.wordsPhrases[w].gloss})`, found: true };
     }
     case 'dialogue': {
       const d = lesson.dialogues.find((x) => x.id === ref);

@@ -5,7 +5,7 @@
 // Problems inside rows and items are collected so one run reports as many as possible;
 // structural problems (a missing section, a missing table) stop that section only.
 
-import type { Dialogue, DialogueTurn, ExerciseSet, GrammarPoint, Lesson, Sentence, VocabItem } from './types.ts';
+import type { Dialogue, DialogueTurn, ExerciseSet, GrammarPoint, Lesson, Sentence, VocabItem, WordPhrase } from './types.ts';
 
 export type ContentIssue = { file: string; line: number; message: string };
 
@@ -27,6 +27,7 @@ export class ContentError extends Error {
  */
 export const normalizeForCompare = (s: string): string => s.normalize('NFC').replace(/[\p{P}\p{S}\p{Z}\s]/gu, '');
 
+/** Level 2 sections (CONTENT_FORMAT.md). */
 export const SECTIONS = [
   'Objectives',
   'Book reference',
@@ -36,6 +37,23 @@ export const SECTIONS = [
   'Exercises',
   'Speaking prompts',
 ] as const;
+
+/** Levels 3-4 sections (docs/CONTENT_FORMAT_L3_L4_ADDENDUM.md): Words & Phrases after Grammar. */
+export const SECTIONS_L3 = [
+  'Objectives',
+  'Book reference',
+  'Vocabulary',
+  'Grammar',
+  'Words & Phrases',
+  'Dialogues',
+  'Exercises',
+  'Speaking prompts',
+] as const;
+
+type SectionName = (typeof SECTIONS_L3)[number];
+
+/** Level 3 and up use the Level 3/4 format: one vocabulary table and a Words & Phrases section. */
+export const isL3Format = (level: number) => level >= 3;
 
 export const POS_TAGS = [
   'n', 'v', 'adj', 'adv', 'vo', 'mw', 'prep', 'conj', 'pr', 'part', 'num', 't', 'pn', 'exp', 'mv', 'vc', 'intj',
@@ -229,16 +247,19 @@ export function parseLesson(text: string, file: string): Lesson {
     report(h1[0].n, `the title line does not match the front matter; expected ${quote(expectedH1)}, found ${quote(h1[0].text)}`);
   }
 
-  const order = SECTIONS.map((s) => `"## ${s}"`).join(', ');
+  // The front matter level picks the section list; a missing or bad level falls back to Level 2's.
+  const l3 = isL3Format(level);
+  const sectionList: readonly SectionName[] = l3 ? SECTIONS_L3 : SECTIONS;
+  const order = `${sectionList.map((s) => `"## ${s}"`).join(', ')} (${l3 ? 'Level 3-4' : 'Level 2'} format)`;
   const sectionsOk = attempt(() => {
-    for (let k = 0; k < Math.max(SECTIONS.length, h2.length); k++) {
-      const want = SECTIONS[k];
+    for (let k = 0; k < Math.max(sectionList.length, h2.length); k++) {
+      const want = sectionList[k];
       const got = h2[k];
       if (!got) fail(lastLine, `missing section "## ${want}" at the end of the file; sections must be ${order}`);
       if (!want) fail(got.line.n, `unexpected section "## ${got.name}"; sections must be ${order}`);
       if (got.name !== want) {
         const seenLater = h2.slice(k + 1).some((h) => h.name === want);
-        const known = (SECTIONS as readonly string[]).includes(got.name);
+        const known = (sectionList as readonly string[]).includes(got.name);
         const problem = seenLater
           ? `sections are out of order: found "## ${got.name}" where "## ${want}" was expected`
           : known
@@ -251,8 +272,8 @@ export function parseLesson(text: string, file: string): Lesson {
   });
   // Without the expected sections nothing else can be located reliably.
   if (!sectionsOk) throw new ContentError(issues);
-  const section = (name: (typeof SECTIONS)[number]) => {
-    const k = SECTIONS.indexOf(name);
+  const section = (name: SectionName) => {
+    const k = sectionList.indexOf(name);
     const end = k + 1 < h2.length ? h2[k + 1].index : body.length;
     return { heading: h2[k].line, body: body.slice(h2[k].index + 1, end) };
   };
@@ -294,19 +315,14 @@ export function parseLesson(text: string, file: string): Lesson {
 
   // ---- Vocabulary ---------------------------------------------------------------------
 
+  const VOCAB_HEADERS = ['#', 'Chinese', 'Pinyin', 'POS', 'English'] as const;
+
   const vocab = attempt(() => {
     const s = section('Vocabulary');
-    const blocks = splitH3(s.body, 'Vocabulary', true);
     const items: VocabItem[] = [];
     let next = 1; // the number the next data row should carry
-    for (let k = 0; k < blocks.length; k++) {
-      const b = blocks[k];
-      if (k >= 2) fail(b.heading.n, `Vocabulary: unexpected heading ${quote(b.heading.text)}; expected only "### Part 1" and "### Part 2"`);
-      const part = (k + 1) as 1 | 2;
-      if (b.title !== `Part ${part}`) fail(b.heading.n, `Vocabulary: expected "### Part ${part}", found ${quote(b.heading.text)}`);
-      const what = `Vocabulary Part ${part}`;
-      const t = attempt(() => onlyTable(b.body, b.heading.n, ['#', 'Chinese', 'Pinyin', 'POS', 'English'], what));
-      if (!t) continue;
+    const across = l3 ? '' : ' across both parts';
+    const readVocabTable = (t: ReturnType<typeof onlyTable>, part: 1 | 2, what: string) => {
       if (t.count === 0) report(t.headerLine, `${what}: the table has no rows`);
       let lastIndex = -1;
       for (const r of t.rows) {
@@ -319,7 +335,7 @@ export function parseLesson(text: string, file: string): Lesson {
           const n = Number(num);
           if (n !== want) {
             next = n + 1; // resynchronise so one slip is reported once
-            fail(r.n, `${what}: numbering must run 1, 2, 3, … without gaps across both parts; expected ${want}, found ${n}`);
+            fail(r.n, `${what}: numbering must run 1, 2, 3, … without gaps${across}; expected ${want}, found ${n}`);
           }
           const badTag = pos.split('/').find((p) => !(POS_TAGS as readonly string[]).includes(p));
           if (badTag !== undefined) {
@@ -329,6 +345,24 @@ export function parseLesson(text: string, file: string): Lesson {
         });
       }
       next += t.count - lastIndex - 1;
+    };
+
+    if (l3) {
+      // Levels 3-4: one table straight under the heading, no "### Part" blocks.
+      splitH3(s.body, 'Vocabulary (one table at Levels 3-4, no "### Part" headings)', false);
+      readVocabTable(onlyTable(s.body, s.heading.n, VOCAB_HEADERS, 'Vocabulary'), 1, 'Vocabulary');
+      return items;
+    }
+
+    const blocks = splitH3(s.body, 'Vocabulary', true);
+    for (let k = 0; k < blocks.length; k++) {
+      const b = blocks[k];
+      if (k >= 2) fail(b.heading.n, `Vocabulary: unexpected heading ${quote(b.heading.text)}; expected only "### Part 1" and "### Part 2"`);
+      const part = (k + 1) as 1 | 2;
+      if (b.title !== `Part ${part}`) fail(b.heading.n, `Vocabulary: expected "### Part ${part}", found ${quote(b.heading.text)}`);
+      const what = `Vocabulary Part ${part}`;
+      const t = attempt(() => onlyTable(b.body, b.heading.n, VOCAB_HEADERS, what));
+      if (t) readVocabTable(t, part, what);
     }
     if (blocks.length < 2) fail(s.heading.n, `Vocabulary: expected "### Part 1" and "### Part 2", found ${blocks.length} part(s)`);
     return items;
@@ -361,7 +395,7 @@ export function parseLesson(text: string, file: string): Lesson {
         if (tableStart < 0) fail(b.heading.n, `${label}: missing the examples table (columns Chinese, Pinyin, English)`);
         const explanationLines = lines.slice(i, tableStart);
         const early = explanationLines.find((l) => /^\*\*(Watch out|Pattern):\*\*/.test(l.text));
-        if (early) fail(early.n, `${label}: unexpected ${quote(early.text.split('**')[1] + ':')} line before the examples table; only explanation text belongs between the Pattern line and the table`);
+        if (early) fail(early.n, `${label}: unexpected ${quote(early.text.split('**')[1])} line before the examples table; only explanation text belongs between the Pattern line and the table`);
         const explanationMd = explanationLines.map((l) => l.text).join('\n').trim();
         if (explanationMd === '') fail(lines[patternLine].n, `${label}: missing the explanation between the Pattern line and the examples table`);
         const t = readTable(lines, tableStart, ['Chinese', 'Pinyin', 'English'], `${label} examples`);
@@ -392,6 +426,60 @@ export function parseLesson(text: string, file: string): Lesson {
     });
     return points;
   });
+
+  // ---- Words & Phrases (Levels 3-4) ---------------------------------------------------
+  // A grammar block without the Pattern line: explanation, a 2-4 row examples table, then an
+  // optional "**Watch out:**" line.
+
+  const wordsPhrases = !l3
+    ? []
+    : attempt(() => {
+        const s = section('Words & Phrases');
+        const blocks = splitH3(s.body, 'Words & Phrases', true);
+        if (blocks.length === 0) fail(s.heading.n, 'Words & Phrases: expected at least one "### W1 · <word> (<gloss>)" block');
+        const entries: WordPhrase[] = [];
+        blocks.forEach((b, k) => {
+          attempt(() => {
+            const m = /^W(\d+) · (\S.*) \(([^()]+)\)$/.exec(b.title);
+            if (!m) fail(b.heading.n, `Words & Phrases: expected the heading "### W${k + 1} · <word or phrase> (<short English gloss>)", found ${quote(b.heading.text)}`);
+            const w = Number(m![1]);
+            if (w !== k + 1) fail(b.heading.n, `Words & Phrases: entries must be numbered W1, W2, … in order; expected W${k + 1}, found W${w}`);
+            const label = `W${w}`;
+            const lines = b.body;
+            const tableStart = lines.findIndex((l) => isTableLine(l));
+            if (tableStart < 0) fail(b.heading.n, `${label}: missing the examples table (columns Chinese, Pinyin, English)`);
+            const explanationLines = lines.slice(0, tableStart);
+            const stray = explanationLines.find((l) => /^\*\*(Watch out|Pattern):\*\*/.test(l.text));
+            if (stray) {
+              fail(stray.n, `${label}: unexpected ${quote(stray.text.split('**')[1])} line before the examples table; a Words & Phrases entry has no Pattern line, and Watch out goes after the table`);
+            }
+            const explanationMd = explanationLines.map((l) => l.text).join('\n').trim();
+            if (explanationMd === '') fail(b.heading.n, `${label}: missing the explanation before the examples table`);
+            const t = readTable(lines, tableStart, ['Chinese', 'Pinyin', 'English'], `${label} examples`);
+            if (t.count < 2 || t.count > 4) fail(t.headerLine, `${label}: the examples table has ${t.count} rows, expected 2 to 4`);
+            let watchOut: string | undefined;
+            for (let j = t.end; j < lines.length; j++) {
+              const l = lines[j];
+              if (isBlank(l)) continue;
+              const wo = /^\*\*Watch out:\*\*\s*(.+)$/.exec(l.text);
+              if (!wo || watchOut !== undefined) {
+                fail(l.n, `${label}: unexpected text after the examples table; only one optional "**Watch out:** …" line may follow`);
+              }
+              watchOut = wo![1].trim();
+            }
+            const entry: WordPhrase = {
+              id: `${id}.w.${w}`,
+              word: m![2].trim(),
+              gloss: m![3].trim(),
+              explanationMd,
+              examples: t.rows.map(toSentence),
+            };
+            if (watchOut !== undefined) entry.watchOut = watchOut;
+            entries.push(entry);
+          });
+        });
+        return entries;
+      });
 
   // ---- Dialogues ----------------------------------------------------------------------
 
@@ -558,6 +646,7 @@ export function parseLesson(text: string, file: string): Lesson {
     bookRefs: bookRefs!,
     vocab: vocab!,
     grammar: grammar!,
+    wordsPhrases: wordsPhrases!,
     dialogues: dialogues!,
     exercises: exercises!,
     speaking: speaking!,

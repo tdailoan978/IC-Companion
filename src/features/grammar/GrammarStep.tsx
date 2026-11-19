@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getSettings } from '../../lib/settings.ts';
-import type { GrammarPoint, Lesson } from '../../lib/content/types.ts';
+import type { GrammarPoint, Lesson, WordPhrase } from '../../lib/content/types.ts';
 import { logActivity, markGrammarDone, useLessonProgress } from '../../lib/progress.ts';
 import { useActiveTimer } from '../../lib/timer.ts';
 import { useDeepLink } from '../../lib/deeplink.ts';
@@ -13,7 +13,10 @@ import { NoteButton } from '../notes/NoteButton.tsx';
 import { paragraphs, patternPieces, understoodCount } from './grammar.ts';
 import './grammar.css';
 
-/** PLAN.md 5.2 step 3: one card per grammar point, each marked "Got it" when understood. */
+/**
+ * PLAN.md 5.2 step 3: one card per grammar point, each marked "Got it" when understood.
+ * Levels 3-4 add the Words & Phrases entries below the grammar points, on cards of the same kind.
+ */
 export function GrammarStep({ lesson }: { lesson: Lesson }) {
   const { progress } = useLessonProgress(lesson);
   const [showPinyin, setShowPinyin] = useState(getSettings().showPinyin);
@@ -22,10 +25,11 @@ export function GrammarStep({ lesson }: { lesson: Lesson }) {
   const timer = useActiveTimer();
   const { item } = useDeepLink();
 
-  // Opened for one grammar point (?item=L11.g.3, e.g. from the study plan): bring its card into
-  // view and put focus on its heading. In a timeout, so the screen's scroll-to-top runs first.
+  // Opened for one grammar point or Words & Phrases entry (?item=L11.g.3, ?item=L1.w.2, e.g. from
+  // the study plan): bring its card into view and put focus on its heading. In a timeout, so the
+  // screen's scroll-to-top runs first.
   useEffect(() => {
-    if (!item || !lesson.grammar.some((g) => g.id === item)) return;
+    if (!item || ![...lesson.grammar, ...lesson.wordsPhrases].some((g) => g.id === item)) return;
     const later = setTimeout(() => {
       const heading = document.getElementById(headingIdOf(item));
       if (heading) revealHeading(heading);
@@ -33,13 +37,14 @@ export function GrammarStep({ lesson }: { lesson: Lesson }) {
     return () => clearTimeout(later);
   }, [item, lesson]);
 
-  if (lesson.grammar.length === 0) {
+  if (lesson.grammar.length === 0 && lesson.wordsPhrases.length === 0) {
     return <p className="muted">This lesson has no grammar points.</p>;
   }
 
   const understood = understoodCount(lesson.grammar, progress.grammarDone);
+  const wpUnderstood = understoodCount(lesson.wordsPhrases, progress.grammarDone);
 
-  const setGotIt = (g: GrammarPoint, done: boolean) => {
+  const setGotIt = (g: GrammarPoint | WordPhrase, done: boolean) => {
     void markGrammarDone(lesson, g.id, done);
     if (done) {
       void logActivity(lesson, 'grammar', g.id, timer.elapsed());
@@ -77,11 +82,100 @@ export function GrammarStep({ lesson }: { lesson: Lesson }) {
           </li>
         ))}
       </ol>
+
+      {lesson.wordsPhrases.length > 0 && (
+        <section className="grammar-wp" aria-labelledby="grammar-wp-heading">
+          <header className="grammar-head">
+            <h2 id="grammar-wp-heading" className="grammar-heading">
+              Words &amp; Phrases
+            </h2>
+            <p className="grammar-count" aria-live="polite">
+              <strong>{wpUnderstood}</strong> of {lesson.wordsPhrases.length} understood
+            </p>
+          </header>
+          <ol className="grammar-list">
+            {lesson.wordsPhrases.map((w, i) => (
+              <li key={w.id}>
+                <WordPhraseCard
+                  entry={w}
+                  lesson={lesson}
+                  number={i + 1}
+                  done={Boolean(progress.grammarDone[w.id])}
+                  showPinyin={showPinyin}
+                  showEnglish={showEnglish}
+                  onGotIt={(done) => setGotIt(w, done)}
+                />
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
     </div>
   );
 }
 
 const headingIdOf = (grammarId: string) => `grammar-${grammarId}`;
+
+type WordPhraseProps = Omit<CardProps, 'point'> & { entry: WordPhrase };
+
+/** A Words & Phrases entry: a grammar card with the word and its gloss in place of the pattern. */
+function WordPhraseCard({ entry, lesson, number, done, showPinyin, showEnglish, onGotIt }: WordPhraseProps) {
+  const headingId = headingIdOf(entry.id);
+  const label = `W${number}`;
+  return (
+    <article className="grammar-card" data-done={done} aria-labelledby={headingId}>
+      <h3 id={headingId} className="grammar-title" tabIndex={-1}>
+        <span className="grammar-number">{label}</span>
+        <span className="grammar-title-text">
+          <MixedText text={entry.word} /> <span className="grammar-wp-gloss">({entry.gloss})</span>
+        </span>
+      </h3>
+
+      <div className="grammar-explanation">
+        {paragraphs(entry.explanationMd).map((p, i) => (
+          <p key={i}>
+            <MixedText text={p} />
+          </p>
+        ))}
+      </div>
+
+      <ul className="grammar-examples" aria-label={`Examples for ${label}, tap one to hear it`}>
+        {entry.examples.map((ex) => (
+          <li key={ex.zh}>
+            <Sentence sentence={ex} showPinyin={showPinyin} showEnglish={showEnglish} />
+          </li>
+        ))}
+      </ul>
+
+      {entry.watchOut && (
+        <aside className="grammar-watch" aria-label="Watch out">
+          <p className="grammar-watch-label" aria-hidden="true">
+            Watch out
+          </p>
+          <p className="grammar-watch-text">
+            <MixedText text={entry.watchOut} />
+          </p>
+        </aside>
+      )}
+
+      <div className="grammar-card-foot">
+        <NoteButton note={{ level: lesson.level, lessonId: lesson.id, kind: 'grammar', ref: entry.id }} label={`Words & Phrases ${label}`} />
+        <button
+          type="button"
+          className={`button grammar-got-it ${done ? 'button-quiet' : ''}`}
+          aria-pressed={done}
+          aria-label={`Got it, ${label}`}
+          onClick={() => onGotIt(!done)}
+        >
+          <span className="grammar-got-it-mark" aria-hidden="true">
+            {done ? '✓' : '○'}
+          </span>
+          Got it
+        </button>
+      </div>
+    </article>
+  );
+}
 
 type CardProps = {
   point: GrammarPoint;

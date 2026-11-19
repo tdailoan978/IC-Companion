@@ -48,7 +48,8 @@ export function finishedSteps(lesson: Lesson, p: LessonProgress): Set<StepKey> {
   const done = new Set<StepKey>();
   const parts = new Set(lesson.vocab.map((v) => String(v.part) as '1' | '2'));
   if ([...parts].every((part) => p.vocabParts[part])) done.add('vocab');
-  if (lesson.grammar.every((g) => p.grammarDone[g.id])) done.add('grammar');
+  // Words & Phrases entries (Levels 3-4) live on the grammar step and share its "Got it" record.
+  if ([...lesson.grammar, ...lesson.wordsPhrases].every((g) => p.grammarDone[g.id])) done.add('grammar');
   if (lesson.dialogues.every((d) => p.dialoguesDone[d.id])) done.add('dialogues');
   if (lesson.exercises.every((e) => p.exerciseSets[e.id])) done.add('exercises');
   if (p.speakingDone) done.add('speaking');

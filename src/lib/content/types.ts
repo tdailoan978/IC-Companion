@@ -6,6 +6,7 @@ export type Sentence = { zh: string; pinyin: string; en: string };
 
 export type VocabItem = {
   id: string; // e.g. L11.v.12
+  /** Level 2 splits the list into Part 1 and Part 2; Levels 3-4 have one list, all part 1. */
   part: 1 | 2;
   n: number;
   zh: string;
@@ -27,7 +28,19 @@ export type GrammarPoint = {
   watchOut?: string;
 };
 
-export type DialogueTurn = Sentence & { id: string; speaker: string }; // id e.g. L11.d1.4
+/** A Words & Phrases entry (Levels 3-4): a grammar card without the pattern line. */
+export type WordPhrase = {
+  id: string; // e.g. L1.w.3
+  /** The word or phrase, e.g. 觉得, 适合/合适, 跟…打交道. */
+  word: string;
+  /** Short English gloss from the heading. */
+  gloss: string;
+  explanationMd: string;
+  examples: Sentence[];
+  watchOut?: string;
+};
+
+export type DialogueTurn =Sentence & { id: string; speaker: string }; // id e.g. L11.d1.4
 
 export type Dialogue = {
   id: string; // e.g. L11.d1
@@ -54,6 +67,8 @@ export type Lesson = {
   bookRefs: { section: string; page: number }[];
   vocab: VocabItem[];
   grammar: GrammarPoint[];
+  /** Levels 3-4 only; empty for Level 2. */
+  wordsPhrases: WordPhrase[];
   dialogues: Dialogue[];
   exercises: ExerciseSet[]; // ids e.g. L11.e2
   speaking: Sentence[];

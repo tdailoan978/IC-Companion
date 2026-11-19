@@ -49,3 +49,19 @@ describe('lesson progress', () => {
     expect(applyAutoTicks(L11, allowAuto(unticked, 'grammar'), T).steps.grammar).toBe(T);
   });
 });
+
+describe('Level 3-4 grammar step', () => {
+  const L3_1 = parseLesson(readFileSync(new URL('../../content/level-3/L1.md', import.meta.url), 'utf8'), 'L1.md');
+  it('needs every Words & Phrases entry as well as every grammar point', () => {
+    const p = emptyProgress();
+    for (const g of L3_1.grammar) p.grammarDone[g.id] = T;
+    expect(finishedSteps(L3_1, p).has('grammar')).toBe(false);
+    for (const w of L3_1.wordsPhrases) p.grammarDone[w.id] = T;
+    expect(finishedSteps(L3_1, p).has('grammar')).toBe(true);
+  });
+  it('finishes vocabulary with its single part', () => {
+    const p = emptyProgress();
+    p.vocabParts = { '1': T };
+    expect(finishedSteps(L3_1, p).has('vocab')).toBe(true);
+  });
+});

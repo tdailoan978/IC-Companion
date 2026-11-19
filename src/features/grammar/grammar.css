@@ -191,3 +191,13 @@
     flex: 1;
   }
 }
+
+/* Words & Phrases (Levels 3-4): a second list of grammar-style cards under the grammar points. */
+.grammar-wp {
+  margin-top: 36px;
+}
+
+.grammar-wp-gloss {
+  color: var(--text-muted);
+  font-weight: 400;
+}

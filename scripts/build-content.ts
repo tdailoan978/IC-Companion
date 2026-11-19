@@ -78,10 +78,12 @@ writeFileSync(outFile, JSON.stringify(bundle, null, 2) + '\n');
 for (const l of sorted) {
   const p1 = l.vocab.filter((v) => v.part === 1).length;
   const p2 = l.vocab.length - p1;
+  const vocab = p2 > 0 ? `${p1}+${p2}=${l.vocab.length}` : `${l.vocab.length}`;
+  const wp = l.wordsPhrases.length > 0 ? `, words & phrases ${l.wordsPhrases.length}` : '';
   const turns = l.dialogues.map((d) => d.turns.length).join('+');
   const sets = l.exercises.map((e) => `${e.type} ${e.items.length}`).join(', ');
   console.log(
-    `level ${l.level} ${l.id.padEnd(4)} vocab ${p1}+${p2}=${l.vocab.length}, grammar ${l.grammar.length}, ` +
+    `level ${l.level} ${l.id.padEnd(4)} vocab ${vocab}, grammar ${l.grammar.length}${wp}, ` +
       `dialogue turns ${turns}, exercises ${sets}, speaking ${l.speaking.length}  (${l.titleEn})`,
   );
 }

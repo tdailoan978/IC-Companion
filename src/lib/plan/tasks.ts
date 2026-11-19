@@ -4,6 +4,7 @@
 
 import type { Lesson } from '../content/types.ts';
 import { lessonKey } from '../content/types.ts';
+import { isL3Format } from '../content/parse.ts';
 import type { StepKey } from '../progress.ts';
 
 export type TaskKind = 'book' | 'words' | 'grammar' | 'dialogue' | 'exercise' | 'speaking';
@@ -69,6 +70,8 @@ export function sliceSizes(n: number, max = 8): number[] {
 export const pageLabel = (from: number, to: number) => (from === to ? `p. ${from}` : `p. ${from}–${to}`);
 
 const KNOWN_SECTIONS = ['text', 'vocabulary', 'grammar', 'practice'].flatMap((s) => [`Part 1 ${s}`, `Part 2 ${s}`]);
+/** Book sections a Level 3-4 lesson reads in study order; any others follow in page order. */
+const KNOWN_SECTIONS_L3 = ['Text', 'Vocabulary', 'Grammar', 'Words & Phrases', 'Language Practice'];
 
 /** The lesson's tasks in study order (PLAN.md 9.1 "Order inside a lesson"). */
 export function lessonTasks(lesson: Lesson): PlanTask[] {
@@ -92,6 +95,7 @@ export function lessonTasks(lesson: Lesson): PlanTask[] {
     });
   };
 
+  const singlePart = lesson.vocab.every((v) => v.part === 1);
   const words = (part: 1 | 2) => {
     const items = lesson.vocab.filter((v) => v.part === part);
     let start = 0;
@@ -101,7 +105,7 @@ export function lessonTasks(lesson: Lesson): PlanTask[] {
         ...base,
         id: `${key}:words:p${part}:${i + 1}`,
         kind: 'words',
-        label: `New words: Part ${part}, ${start + 1}–${start + size}`,
+        label: singlePart ? `New words: ${start + 1}–${start + size}` : `New words: Part ${part}, ${start + 1}–${start + size}`,
         units: size,
         step: 'vocab',
         part,
@@ -125,19 +129,35 @@ export function lessonTasks(lesson: Lesson): PlanTask[] {
     tasks.push({ ...base, id: `${key}:dialogue:${d.id}`, kind: 'dialogue', label: `Dialogue ${i + 1}: ${d.title}`, units: 1, step: 'dialogues', ref: d.id });
   };
 
-  for (const part of [1, 2] as const) {
-    book(`Part ${part} text`);
-    book(`Part ${part} vocabulary`);
-    words(part);
-    book(`Part ${part} grammar`);
-    if (part === 1) grammar(0, half);
-    else grammar(half, lesson.grammar.length);
-    dialogue(part - 1);
-    book(`Part ${part} practice`);
+  if (isL3Format(lesson.level)) {
+    // Levels 3-4: one text, one word list, then Words & Phrases (book Text → … → Language Practice).
+    book('Text');
+    book('Vocabulary');
+    words(1);
+    book('Grammar');
+    grammar(0, lesson.grammar.length);
+    book('Words & Phrases');
+    for (const w of lesson.wordsPhrases) {
+      tasks.push({ ...base, id: `${key}:grammar:${w.id}`, kind: 'grammar', label: `Words & Phrases: ${w.word}`, units: 1, step: 'grammar', ref: w.id });
+    }
+    lesson.dialogues.forEach((_, i) => dialogue(i));
+    book('Language Practice');
+    for (const s of sections) if (!KNOWN_SECTIONS_L3.includes(s.section)) book(s.section);
+  } else {
+    for (const part of [1, 2] as const) {
+      book(`Part ${part} text`);
+      book(`Part ${part} vocabulary`);
+      words(part);
+      book(`Part ${part} grammar`);
+      if (part === 1) grammar(0, half);
+      else grammar(half, lesson.grammar.length);
+      dialogue(part - 1);
+      book(`Part ${part} practice`);
+    }
+    // Any further dialogues, then the other book sections in page order.
+    for (let i = 2; i < lesson.dialogues.length; i++) dialogue(i);
+    for (const s of sections) if (!KNOWN_SECTIONS.includes(s.section)) book(s.section);
   }
-  // Any further dialogues, then the other book sections in page order.
-  for (let i = 2; i < lesson.dialogues.length; i++) dialogue(i);
-  for (const s of sections) if (!KNOWN_SECTIONS.includes(s.section)) book(s.section);
 
   lesson.exercises.forEach((e, i) => {
     tasks.push({ ...base, id: `${key}:ex:${e.id}`, kind: 'exercise', label: `Exercises E${i + 1}: ${e.title}`, units: 1, step: 'exercises', ref: e.id });
